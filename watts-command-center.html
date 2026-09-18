@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WATTS Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* WATTS Command Center — dark glass.
+   One rule governs colour: it encodes provenance, never decoration. Green is a hardware
+   counter, blue is arithmetic over measured values, amber is a declared coefficient,
+   violet is the digital twin. Nothing is coloured to look nice. */
+:root {
+  --bg: #0E1417;
+  --bg-2: #121A1E;
+  --glass: rgba(255,255,255,.045);
+  --glass-2: rgba(255,255,255,.075);
+  --edge: rgba(255,255,255,.10);
+  --edge-2: rgba(255,255,255,.18);
+  --ink: #E6EDEF;
+  --ink-soft: #94A4AB;
+  --ink-dim: #64757C;
+  --measured: #46C08A;
+  --derived: #5AA9F0;
+  --estimated: #E2A63C;
+  --simulated: #A487E8;
+  --alert: #F0705F;
+  --gpu: #5AA9F0;
+  --host: #7E8F98;
+  --cooling: #46C08A;
+  --grid: rgba(230,237,239,.10);
+  --radius: 10px;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #EDEFEC; --bg-2: #F7F8F5; --glass: rgba(16,22,25,.035); --glass-2: rgba(16,22,25,.06);
+    --edge: rgba(16,22,25,.12); --edge-2: rgba(16,22,25,.22);
+    --ink: #10181B; --ink-soft: #4C5A60; --ink-dim: #77868C;
+    --measured: #197A54; --derived: #1F5C97; --estimated: #8C5A0F; --simulated: #5E3FA0;
+    --alert: #A5291D; --gpu: #1F5C97; --host: #6C7C84; --cooling: #197A54;
+    --grid: rgba(16,24,27,.10);
+  }
+}
+:root[data-theme="light"] {
+  --bg: #EDEFEC; --bg-2: #F7F8F5; --glass: rgba(16,22,25,.035); --glass-2: rgba(16,22,25,.06);
+  --edge: rgba(16,22,25,.12); --edge-2: rgba(16,22,25,.22);
+  --ink: #10181B; --ink-soft: #4C5A60; --ink-dim: #77868C;
+  --measured: #197A54; --derived: #1F5C97; --estimated: #8C5A0F; --simulated: #5E3FA0;
+  --alert: #A5291D; --gpu: #1F5C97; --host: #6C7C84; --cooling: #197A54;
+  --grid: rgba(16,24,27,.10);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background:
+    radial-gradient(1100px 520px at 12% -8%, rgba(90,169,240,.10), transparent 60%),
+    radial-gradient(900px 480px at 95% 0%, rgba(164,135,232,.09), transparent 62%),
+    var(--bg);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1240px; margin: 0 auto; padding: 24px 18px 80px; }
+h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.01em; }
+h1 { font-size: 1.45rem; }
+h2 { font-size: 1rem; }
+h3 { font-size: .93rem; }
+.num { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+.soft { color: var(--ink-soft); }
+.dim { color: var(--ink-dim); }
+
+/* masthead + run stamp */
+header.mast { display:flex; flex-wrap:wrap; gap:16px; align-items:flex-start; justify-content:space-between;
+  padding-bottom:14px; border-bottom:1px solid var(--edge); }
+header.mast p { margin:6px 0 0; color:var(--ink-soft); font-size:.88rem; max-width:62ch; }
+.stamp { font-size:.76rem; color:var(--ink-dim); text-align:right; line-height:1.7; }
+.stamp b { color:var(--ink-soft); font-weight:500; }
+
+/* provenance legend */
+.legend { display:flex; flex-wrap:wrap; gap:16px; margin:14px 0 18px; font-size:.79rem; color:var(--ink-soft); }
+.dot { display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:6px; vertical-align:1px; }
+.p-measured{background:var(--measured)} .p-derived{background:var(--derived)}
+.p-estimated{background:var(--estimated)} .p-simulated{background:var(--simulated)}
+.tag { font-size:.7rem; padding:1px 6px; border:1px solid currentColor; border-radius:999px; white-space:nowrap; }
+.tag.measured{color:var(--measured)} .tag.derived{color:var(--derived)}
+.tag.estimated{color:var(--estimated)} .tag.simulated{color:var(--simulated)}
+
+/* section nav */
+nav.tabs { position:sticky; top:0; z-index:5; display:flex; gap:6px; flex-wrap:wrap; padding:10px 0;
+  background:linear-gradient(var(--bg) 70%, transparent); margin-bottom:6px; }
+nav.tabs a { text-decoration:none; color:var(--ink-soft); font-size:.83rem; padding:6px 12px;
+  border:1px solid var(--edge); border-radius:999px; background:var(--glass);
+  backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+nav.tabs a:hover { color:var(--ink); border-color:var(--edge-2); }
+
+section.band { margin-top:26px; }
+section.band > h2 { display:flex; align-items:baseline; gap:10px; margin-bottom:4px; }
+section.band > h2 .sub { font-size:.78rem; color:var(--ink-dim); font-weight:400; }
+
+.grid { display:grid; grid-template-columns:repeat(12,1fr); gap:12px; margin-top:12px; }
+.card {
+  grid-column: span 12; padding:16px 18px; border:1px solid var(--edge); border-radius:var(--radius);
+  background:var(--glass); backdrop-filter:blur(14px) saturate(120%);
+  -webkit-backdrop-filter:blur(14px) saturate(120%);
+}
+.card > header { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.card > header .note { font-size:.76rem; color:var(--ink-dim); }
+@media (min-width:900px){ .c3{grid-column:span 3} .c4{grid-column:span 4} .c6{grid-column:span 6}
+  .c8{grid-column:span 8} .c9{grid-column:span 9} }
+
+/* metric tiles */
+.tile .v { font-size:1.65rem; font-weight:500; letter-spacing:-.02em; line-height:1.15; }
+.tile .k { font-size:.76rem; color:var(--ink-soft); margin-bottom:4px; }
+.tile .f { font-size:.72rem; color:var(--ink-dim); margin-top:4px; }
+
+/* hero bus */
+.hero { display:flex; flex-wrap:wrap; align-items:flex-end; gap:26px; }
+.hero .big { font-size:clamp(2.4rem,7.5vw,3.6rem); font-weight:500; letter-spacing:-.035em; line-height:.95; }
+.hero .unit { font-size:1rem; color:var(--ink-soft); margin-left:6px; }
+.hero .right { margin-left:auto; text-align:right; }
+.busbar { display:flex; height:22px; margin-top:16px; border:1px solid var(--edge); border-radius:6px; overflow:hidden; }
+.busbar span { display:block; height:100%; }
+.buskeys { display:flex; flex-wrap:wrap; gap:18px; margin-top:9px; font-size:.79rem; color:var(--ink-soft); }
+.buskeys b { color:var(--ink); font-weight:500; }
+
+svg { display:block; width:100%; height:auto; overflow:visible; }
+table { width:100%; border-collapse:collapse; }
+th, td { text-align:left; padding:7px 8px 7px 0; border-bottom:1px solid var(--edge); font-size:.84rem; }
+th { color:var(--ink-dim); font-weight:500; font-size:.76rem; text-transform:none; }
+tr:last-child td { border-bottom:none; }
+td.n, th.n { text-align:right; }
+.scroll { overflow-x:auto; }
+
+.bars { display:grid; gap:7px; }
+.bars .row { display:grid; grid-template-columns:104px 1fr 96px; gap:10px; align-items:center; font-size:.82rem; }
+.track { position:relative; height:10px; border-radius:3px; background:var(--glass-2); overflow:hidden; }
+.track i { position:absolute; inset:0 auto 0 0; display:block; background:var(--derived); }
+.track i.hot{background:var(--estimated)} .track i.crit{background:var(--alert)}
+.track u { position:absolute; top:-3px; bottom:-3px; width:2px; background:var(--ink-soft); }
+
+.chip { display:inline-block; font-size:.72rem; padding:2px 8px; border-radius:999px;
+  border:1px solid var(--edge-2); color:var(--ink-soft); }
+.chip.ok{color:var(--measured); border-color:color-mix(in srgb, var(--measured) 45%, transparent)}
+.chip.bad{color:var(--alert); border-color:color-mix(in srgb, var(--alert) 45%, transparent)}
+.chip.warn{color:var(--estimated); border-color:color-mix(in srgb, var(--estimated) 45%, transparent)}
+
+.item { padding:11px 0; border-top:1px solid var(--edge); }
+.item:first-of-type { border-top:none; }
+.item .meta { display:flex; flex-wrap:wrap; gap:12px; margin-top:5px; font-size:.78rem; color:var(--ink-soft); }
+.item .meta b { color:var(--ink); font-weight:500; }
+.item ul { margin:6px 0 0; padding-left:17px; font-size:.78rem; color:var(--ink-dim); }
+.save { color:var(--measured); }
+
+.alert { border:1px solid color-mix(in srgb, var(--alert) 50%, transparent); border-left-width:3px; }
+.alert h2 { color:var(--alert); }
+.alert ol { margin:8px 0 0; padding-left:20px; font-size:.82rem; color:var(--ink-soft); }
+.alert ol b { color:var(--ink); font-weight:500; }
+
+footer.foot { margin-top:34px; padding-top:14px; border-top:1px solid var(--edge);
+  color:var(--ink-dim); font-size:.78rem; }
+footer.foot code { color:var(--ink-soft); word-break:break-all; }
+@media (prefers-reduced-motion:no-preference){
+  .busbar span, .track i { transition: width .45s cubic-bezier(.2,.7,.3,1); }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="mast">
+  <div>
+    <h1>WATTS Command Center</h1>
+    <p>Energy, tokens, heat, cost and policy for one serving window. Colour encodes where
+      each number came from, not how important it is.</p>
+  </div>
+  <div class="stamp" id="stamp"></div>
+</header>
+
+<div class="legend">
+  <span><i class="dot p-measured"></i>Measured — hardware counter</span>
+  <span><i class="dot p-derived"></i>Derived — arithmetic over measured values</span>
+  <span><i class="dot p-estimated"></i>Estimated — declared coefficients</span>
+  <span><i class="dot p-simulated"></i>Simulated — digital twin, not a measurement</span>
+</div>
+
+<nav class="tabs">
+  <a href="#overview">Overview</a>
+  <a href="#efficiency">Efficiency</a>
+  <a href="#optimization">Optimisation</a>
+  <a href="#security">Security</a>
+  <a href="#forecast">Forecast</a>
+</nav>
+
+<!-- ============================ OVERVIEW ============================ -->
+<section class="band" id="overview">
+  <h2>Overview <span class="sub">what the window did</span></h2>
+  <div class="grid">
+    <div class="card c8">
+      <div class="hero">
+        <div>
+          <div class="big num" id="kw">—<span class="unit">kW</span></div>
+          <div class="soft" style="font-size:.82rem;margin-top:6px">Facility draw, mean over the window
+            <span class="tag simulated" id="power-tag">simulated</span></div>
+        </div>
+        <div class="right">
+          <div class="num" style="font-size:1.9rem" id="pue">—</div>
+          <div class="dim" style="font-size:.76rem">PUE, derived</div>
+        </div>
+      </div>
+      <div class="busbar" id="busbar"></div>
+      <div class="buskeys" id="buskeys"></div>
+    </div>
+    <div class="card c4" id="overview-tiles"></div>
+
+    <div class="card c8">
+      <header><h3>Power over the window</h3><span class="note">accelerators · hosts · cooling</span></header>
+      <div id="chart-power"></div>
+    </div>
+    <div class="card c4">
+      <header><h3>Budgets</h3><span class="note">projected hourly</span></header>
+      <div class="bars" id="budget-bars"></div>
+      <table id="objectives" style="margin-top:12px"></table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ EFFICIENCY ============================ -->
+<section class="band" id="efficiency">
+  <h2>Efficiency <span class="sub">energy per unit of useful work</span></h2>
+  <div class="grid">
+    <div class="card c4" id="efficiency-tiles"></div>
+    <div class="card c4">
+      <header><h3>Prefill vs decode</h3><span class="note">attributed, not measured</span></header>
+      <div id="chart-split"></div>
+      <p class="dim" style="font-size:.76rem;margin:10px 0 0">The split comes from the model
+        profile's weights. The request total keeps the provenance of its measurement; this
+        division is an attribution.</p>
+    </div>
+    <div class="card c4">
+      <header><h3>Energy per token by task</h3></header>
+      <div id="chart-tasks"></div>
+    </div>
+
+    <div class="card c8">
+      <header><h3>Token waste</h3><span class="note">each finding carries its evidence and a recommendation</span></header>
+      <div class="scroll"><table id="findings"></table></div>
+      <p class="dim" style="font-size:.76rem;margin:10px 0 0" id="findings-note"></p>
+    </div>
+    <div class="card c4">
+      <header><h3>Batch and queue</h3><span class="note">where latency goes</span></header>
+      <div class="bars" id="queue-bars"></div>
+      <div id="chart-queue" style="margin-top:12px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ OPTIMIZATION ============================ -->
+<section class="band" id="optimization">
+  <h2>Optimisation <span class="sub">proposed, simulated, never applied</span></h2>
+  <div class="grid">
+    <div class="card c8">
+      <header><h3>Plan</h3><span class="note">each step re-simulated on the state the previous one left</span></header>
+      <div class="scroll"><table id="plan"></table></div>
+      <p class="soft" style="font-size:.8rem;margin:10px 0 0" id="plan-note"></p>
+    </div>
+    <div class="card c4" id="optimization-tiles"></div>
+
+    <div class="card c6">
+      <header><h3>Energy–latency–quality frontier</h3><span class="note">admissibility first</span></header>
+      <div class="scroll"><table id="frontier"></table></div>
+      <p class="dim" style="font-size:.76rem;margin:10px 0 0" id="frontier-note"></p>
+    </div>
+    <div class="card c6">
+      <header><h3>If nothing changes</h3><span class="note">no-action projection</span></header>
+      <div class="scroll"><table id="noaction"></table></div>
+      <p class="soft" style="font-size:.8rem;margin:10px 0 0" id="noaction-verdict"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ SECURITY ============================ -->
+<section class="band" id="security">
+  <h2>Security <span class="sub">what policy allowed, and what it stopped</span></h2>
+  <div id="anomaly-slot"></div>
+  <div class="grid">
+    <div class="card c8">
+      <header><h3>Policy gate</h3><span class="note">every proposal, with its outcome</span></header>
+      <div id="gate"></div>
+    </div>
+    <div class="card c4" id="security-tiles"></div>
+    <div class="card c12">
+      <header><h3>Root cause</h3><span class="note">graded, never asserted</span></header>
+      <p id="rca-statement" style="margin:0 0 8px"></p>
+      <div class="scroll"><table id="detections"></table></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ FORECAST ============================ -->
+<section class="band" id="forecast">
+  <h2>Forecast <span class="sub">central path and interval, from this window's residuals</span></h2>
+  <div class="grid">
+    <div class="card c8">
+      <header><h3>Facility power</h3><span class="note">80% interval</span></header>
+      <div id="chart-forecast"></div>
+    </div>
+    <div class="card c4">
+      <header><h3>Budget risk</h3></header>
+      <div id="breach"></div>
+      <table id="forecast-table" style="margin-top:10px"></table>
+    </div>
+  </div>
+</section>
+
+<footer class="foot" id="foot"></footer>
+</div>
+
+<script id="watts-data" type="application/json">{"run":{"run_id":"run-58ef76a23ccb","seed":42,"configuration_hash":"92050cf4382a0bcb","configuration":{"seed":42,"duration_s":420.0,"rps":2.0,"gpus":4,"model":"watts-sim-medium","tenant":"acme","workload":"checkout-assistant","p95_latency_slo_ms":12000.0,"availability_slo":0.98,"max_error_rate":0.02,"max_wh_per_successful_request":0.5,"energy_budget_wh_per_hour":1800.0,"token_budget_per_hour":12000000.0,"quality_metric":"task_success_rate","quality_floor":0.9,"electricity_per_kwh":0.12,"accelerator_per_hour":2.4,"carbon_g_per_kwh":380.0,"forecast_horizons":[2,4,8,12,20]},"command":"python watts.py dashboard --seed 42","reproduction_command":"python watts.py dashboard --seed 42","version":"0.2.0","policy_version":"watts-policy-1","code_revision":"unknown","started_at":1789726516.5043657,"started_at_utc":"2026-09-18 10:15:16Z","python":"3.12.3","platform":"Linux x86_64","notes":""},"observation":{"provenance":"simulated","adapters":[{"adapter":"nvml","available":false,"reason":"pynvml is not installed"},{"adapter":"dcgm","available":false,"reason":"no DCGM transport configured"},{"adapter":"watts-digital-twin","available":true,"provenance":"simulated"}],"window_s":423.30000000006197,"requests":785,"successful_requests":773,"error_rate":0.015286624203821653,"total_tokens":1994857,"tokens_per_s":4712.631703283033,"queueing":{"queue_wait_p50_ms":145.19509526624574,"queue_wait_p95_ms":2219.4908017666535,"queue_wait_p99_ms":2926.9421488360194,"service_p50_ms":1503.4833333333336,"service_p95_ms":3513.5166666666664,"mean_queue_wait_ms":600.762101954757,"mean_service_ms":1644.5404390279139,"queue_share_of_latency":0.26756398792112424,"mean_queue_depth":1.0666115507263494,"max_queue_depth":9,"device_utilization":0.6757411125546239,"throughput_requests_s":1.854476730450945},"thermal":{"max_gpu_temp_c":43.9304650227751,"mean_clock_factor":1.0,"throttled_fraction":0.0,"exceeded_critical_temp":false}},"ingest":{"submitted":500,"accepted":275,"forged_record_accepted":false,"forged_record_reason":"bad_signature","gateway_stats":{"accepted":275,"rejected":226,"rejections_by_reason":{"clock_skew":225,"bad_signature":1}}},"energy":{"gpu_wh":60.80204782953652,"it_wh":93.537247829541,"cooling_wh":21.37532676099601,"facility_wh":132.7852412572067,"pue":{"pue":1.4195974794895598,"it_energy_wh":93.537247829541,"facility_energy_wh":132.7852412572067,"provenance":"simulated","window_s":423.30000000006197,"basis":"facility and IT totals from a simulated source, divided"},"wh_per_1k_tokens":0.026060112263350456,"facility_wh_per_1k_tokens":0.06656378941307908,"wh_per_request":0.06622445524755477,"wh_per_successful_request":0.06725251923587386,"provenance":"simulated"},"attribution":{"requests":200,"total_wh":13.582493710745368,"components":{"prefill":{"value":6.814320043740414,"unit":"Wh","source":"sum:prefill","provenance":"simulated","timestamp":106.19999999999611,"confidence":null,"calibration_id":null},"decode":{"value":6.7681736670049535,"unit":"Wh","source":"sum:decode","provenance":"simulated","timestamp":106.19999999999611,"confidence":null,"calibration_id":null}},"shares":{"prefill":0.5016987446384368,"decode":0.49830125536156317},"provenance_summary":{"values":400,"weakest":"simulated","measured_fraction":0.0,"calibrated_fraction":0.0,"by_provenance":{"simulated":{"count":400,"energy":13.582493710745362}},"uncalibrated_sources":["decode weight of profile 'watts-sim-medium' (declared-default)","prefill weight of profile 'watts-sim-medium' (declared-default)"]}},"calibration":{"models":{"watts-sim-embed":"uncalibrated","watts-sim-large":"uncalibrated","watts-sim-medium":"uncalibrated","watts-sim-small":"uncalibrated"},"calibrated":[],"uncalibrated":["watts-sim-embed","watts-sim-large","watts-sim-medium","watts-sim-small"],"calibrated_fraction":0.0,"note":"absolute energy figures for uncalibrated models are model artefacts; relative comparisons under one configuration remain valid"},"efficiency":{"metrics":{"requests":785,"successful_tasks":773,"total_tokens":1994857,"energy_wh":51.9861973693305,"tokens_per_request":2541.2191082802547,"tokens_per_successful_task":2580.668822768435,"wh_per_token":2.6060112263350456e-05,"wh_per_successful_task":0.06725251923587386,"wh_per_useful_output_token":0.00030447579576742707,"wh_per_useful_task":0.4600548439763761,"wh_per_workload_window":51.9861973693305,"wh_per_hour":446.2334538139305,"wh_per_1k_tokens":0.026060112263350456,"useful_tasks":113,"failed_requests":12,"useful_work_fraction":0.9847133757961783,"window_s":419.40000000006125,"provenance":"simulated"},"findings":[{"finding_id":"WF-fea42cb91e","type":"repeated_context","summary":"The same context prefix is re-processed across requests; prefix caching is not in use","affected_requests":519,"wasted_tokens":949715,"wasted_energy_wh":10.27345611795743,"evidence":["prefix e734607bd163b66c re-sent 323x","prefix d7698039b6057982 re-sent 196x","energy estimate assumes prefix caching removes prefill only, not decode"],"confidence":0.6,"provenance":"derived","recommendation":"enable prefix/KV caching for the shared context"},{"finding_id":"WF-ff30888d4f","type":"duplicate_call","summary":"Identical prompts re-sent within the dedup window without a cache hit","affected_requests":61,"wasted_tokens":152542,"wasted_energy_wh":4.752179275143138,"evidence":["prompt 5cba940b88b68fe5 sent 3x to watts-sim-medium for tenant tenant-a","prompt 823556f86aa2cb0e sent 2x to watts-sim-medium for tenant tenant-a","prompt bdc546fdd7220491 sent 2x to watts-sim-medium for tenant tenant-a","a response cache keyed on the prompt hash removes this work entirely"],"confidence":0.9,"provenance":"derived","recommendation":"enable a per-tenant response cache keyed on the prompt hash"},{"finding_id":"WF-b91f17191f","type":"failed_work","summary":"Energy spent on requests that did not produce a usable result","affected_requests":12,"wasted_tokens":27061,"wasted_energy_wh":0.5697478429746456,"evidence":["12 of 785 requests failed","failure energy is pure waste: fix the error rate before tuning the batch size"],"confidence":0.95,"provenance":"derived","recommendation":"fix the error rate before tuning anything else: failed work is pure waste"},{"finding_id":"WF-40ffc30520","type":"underused_context_window","summary":"Most requests use a fraction of the context window they were allocated","affected_requests":601,"wasted_tokens":0,"wasted_energy_wh":0.0,"evidence":["601 of 785 requests below 10% window use","a smaller-window deployment of the same model frees KV cache memory and raises batch size"],"confidence":0.4,"provenance":"derived","recommendation":"deploy a shorter-context variant or raise the batch size"}],"wasted_energy_wh_upper_bound":15.595383236075214,"note":"findings may overlap; do not sum them as independent savings"},"economics":{"tokens":1994857,"energy_wh":132.7852412572067,"gpu_seconds":1693.2000000002479,"per_1k_tokens":{"energy_wh":0.06656378941307908,"gpu_seconds":0.8487826445706373,"cost":0.0005738427511099944,"carbon_g":0.025294239976970053},"cost":{"energy":0.015934228950864802,"gpu":1.1288000000001652,"total":1.14473422895103,"currency":"USD"},"carbon":{"total_g_co2e":50.45839167773855,"intensity_g_per_kwh":380.0,"source":"operator-supplied static value","note":"carbon is derived from energy and a grid intensity signal; it is not measured"}},"anomalies":{"comparison_window":"same workload with cooling capability degraded to 40%","detections":{"detections":[{"metric":"wh_per_1k_tokens","detected":true,"observed":0.09003625544637964,"baseline":0.06656378941307908,"delta_pct":35.26311563729643,"score":29.73080705963901,"severity":"page","reason":"wh_per_1k_tokens at 0.09004 is +29.7 robust \u03c3 from its own baseline 0.06656","method":{"estimator":"median/MAD (robust)","baseline_windows":20,"baseline_value":0.06656378941307908,"dispersion":0.0007894997934706437,"threshold":3.5,"robust":true,"direction":"upper","notes":""},"method_description":"median/MAD (robust) over 20 windows; baseline 0.06656, dispersion 0.0007895, |z| \u2265 3.5 (upper)"},{"metric":"gpu_temp_max_c","detected":true,"observed":73.25987549762401,"baseline":43.9304650227751,"delta_pct":66.76325975525982,"score":90.06240355491907,"severity":"page","reason":"gpu_temp_max_c at 73.26 is +90.1 robust \u03c3 from its own baseline 43.93","method":{"estimator":"median/MAD (robust)","baseline_windows":20,"baseline_value":43.9304650227751,"dispersion":0.32565653721382365,"threshold":3.5,"robust":true,"direction":"upper","notes":""},"method_description":"median/MAD (robust) over 20 windows; baseline 43.93, dispersion 0.3257, |z| \u2265 3.5 (upper)"},{"metric":"pue","detected":true,"observed":1.8347447699337074,"baseline":1.422436674448539,"delta_pct":28.98604225351649,"score":48.97479822275673,"severity":"page","reason":"pue at 1.835 is +49.0 robust \u03c3 from its own baseline 1.422","method":{"estimator":"median/MAD (robust)","baseline_windows":20,"baseline_value":1.422436674448539,"dispersion":0.00841878089236485,"threshold":3.5,"robust":true,"direction":"upper","notes":""},"method_description":"median/MAD (robust) over 20 windows; baseline 1.422, dispersion 0.008419, |z| \u2265 3.5 (upper)"},{"metric":"tokens_per_s","detected":false,"observed":4712.631703283033,"baseline":4712.631703283033,"delta_pct":0.0,"score":0.0,"severity":"none","reason":"baseline is perfectly flat; used a 20% relative change test instead","method":{"estimator":"relative change (MAD is zero)","baseline_windows":20,"baseline_value":4712.631703283033,"dispersion":0.0,"threshold":20.0,"robust":true,"direction":"two-sided","notes":"baseline has no dispersion; z is undefined"},"method_description":"relative change (MAD is zero) over 20 windows; baseline 4713, dispersion 0, |z| \u2265 20.0 (two-sided)"},{"metric":"latency_energy_ratio","detected":true,"observed":51938.551153645174,"baseline":70253.70250729144,"delta_pct":-26.070015814106572,"score":0.0,"severity":"watch","reason":"baseline is perfectly flat; used a 20% relative change test instead","method":{"estimator":"relative change (MAD is zero)","baseline_windows":20,"baseline_value":70253.70250729144,"dispersion":0.0,"threshold":20.0,"robust":true,"direction":"two-sided","notes":"baseline has no dispersion; z is undefined"},"method_description":"relative change (MAD is zero) over 20 windows; baseline 7.025e+04, dispersion 0, |z| \u2265 20.0 (two-sided)"}],"firing":["wh_per_1k_tokens","gpu_temp_max_c","pue","latency_energy_ratio"],"pages":["wh_per_1k_tokens","gpu_temp_max_c","pue"],"note":"each metric is tested against its own history, not a global threshold; a busy rack drawing more power is not an anomaly"},"root_cause":{"anomaly":{"detected":true,"metric":"wh_per_1k_tokens","baseline":0.06656378941307908,"observed":0.09003625544637964,"delta_pct":35.26311563729643,"robust_z":29.73121437169572,"hypotheses":[{"cause":"cooling_overhead","confidence":1.0,"evidence":["PUE 1.42 -> 1.83","facility overhead grew faster than IT load"]}]},"statement":"primary cause within simulation: cooling overhead (confidence 1.00). Facility power rose while IT power did not, so the overhead ratio moved rather than the workload. Validation required: facility telemetry: CRAC state, chilled water temperature, metered facility power.","primary_cause":{"cause":"cooling_overhead","grade":"primary","confidence":1.0,"evidence":["PUE 1.42 -> 1.83","facility overhead grew faster than IT load"],"validation_required":"facility telemetry: CRAC state, chilled water temperature, metered facility power","mechanism":"Facility power rose while IT power did not, so the overhead ratio moved rather than the workload."},"contributing_factors":[],"possible_causes":[],"insufficient_evidence":[],"conclusive":true,"provenance":"simulated","method":"hypotheses graded by margin: primary requires confidence \u2265 0.40 and a lead of \u2265 0.20 over the runner-up (top 1.00, runner-up 0.00)","note":"correlation is graded, never promoted to causation automatically; every cause names the telemetry that would confirm it"}},"forecast":{"step_s":14.110000000002065,"energy":{"metric":"facility_power_w","step_s":14.110000000002065,"method":"holt-damped","interval_level":0.8,"warning":"","points":[{"horizon_steps":2,"value":1109.5079952227413,"lower":904.10793519811,"upper":1314.9080552473727},{"horizon_steps":4,"value":1107.6476619392756,"lower":817.1681113401942,"upper":1398.127212538357},{"horizon_steps":8,"value":1104.7403461806216,"lower":693.9402261313589,"upper":1515.5404662298843},{"horizon_steps":12,"value":1102.6575656386246,"lower":599.532225441241,"upper":1605.7829058360082},{"horizon_steps":20,"value":1100.0965540383568,"lower":450.5645328252209,"upper":1749.6285752514927}]},"tokens":{"metric":"tokens_per_s","step_s":14.110000000002065,"method":"holt-damped","interval_level":0.8,"warning":"","points":[{"horizon_steps":2,"value":4424.99336474546,"lower":0.0,"upper":10035.442219631313},{"horizon_steps":4,"value":4391.694590307503,"lower":0.0,"upper":12326.067451887677},{"horizon_steps":8,"value":4339.6555000392345,"lower":0.0,"upper":15560.553209810942},{"horizon_steps":12,"value":4302.375062126243,"lower":0.0,"upper":18045.11198457877},{"horizon_steps":20,"value":4256.534594523879,"lower":0.0,"upper":21998.33167184668}]},"gpu_demand":{"metric":"gpu_seconds_per_s","step_s":14.110000000002065,"method":"holt-damped","interval_level":0.8,"warning":"","points":[{"horizon_steps":2,"value":4.0,"lower":4.0,"upper":4.0},{"horizon_steps":4,"value":4.0,"lower":4.0,"upper":4.0},{"horizon_steps":8,"value":4.0,"lower":4.0,"upper":4.0},{"horizon_steps":12,"value":4.0,"lower":4.0,"upper":4.0},{"horizon_steps":20,"value":4.0,"lower":4.0,"upper":4.0}]},"cooling_load":{"metric":"cooling_power_w","step_s":14.110000000002065,"method":"holt-damped","interval_level":0.8,"warning":"","points":[{"horizon_steps":2,"value":180.41668340205175,"lower":151.06714590529535,"upper":209.76622089880814},{"horizon_steps":4,"value":180.02973701623196,"lower":138.52322303894138,"upper":221.53625099352254},{"horizon_steps":8,"value":179.42501992857535,"lower":120.72594493506257,"upper":238.12409492208815},{"horizon_steps":12,"value":178.99180486418646,"lower":107.10041381045143,"upper":250.8831959179215},{"horizon_steps":20,"value":178.45911849472043,"lower":85.64773173245352,"upper":271.27050525698735}]},"breach_probabilities":[{"dimension":"energy","limit":1800.0,"horizon_s":282.2000000000413,"central":1100.0965540383568,"probability":0.08364124720161481,"severity":"unlikely but possible","method":"normal approximation to the forecaster's 80% interval (\u03c3 \u2248 506.8)"},{"dimension":"tokens","limit":3333.3333333333335,"horizon_s":282.2000000000413,"central":4256.534594523879,"probability":0.5428314027869996,"severity":"likely enough to plan for","method":"normal approximation to the forecaster's 80% interval (\u03c3 \u2248 8582)"}]},"slo":{"slo":"checkout-assistant","p95_latency_ms":4676.352659184453,"availability":0.9847133757961783,"error_rate":0.015286624203821653,"wh_per_successful_request":0.06725251923587386,"latency_headroom_ms":7323.647340815547,"violations":[],"reliability_violations":[],"met":true,"samples":785},"budgets":{"workload":"checkout-assistant","tracked":true,"breaches":[{"dimension":"tokens_per_hour","limit":12000000.0,"projected":16965474.13181892,"utilization":1.4137895109849101}],"action":"detect -> explain -> recommend -> require approval"},"no_action":{"horizon_s":282.2000000000413,"dimensions":[{"name":"energy","current":1129.2862474034353,"projected":1100.0965540383568,"lower":450.5645328252209,"upper":1749.6285752514927,"unit":"Wh/h","change_pct":-2.5847913611092195,"limit":1800.0,"utilisation":0.6111647522435315,"breach_expected":false,"breach_possible":false},{"name":"tokens","current":4712.631703283033,"projected":4256.534594523879,"lower":0.0,"upper":21998.33167184668,"unit":"tokens/h","change_pct":-9.678182753840414,"limit":3333.3333333333335,"utilisation":1.2769603783571635,"breach_expected":true,"breach_possible":false}],"slo_state":"within objectives","thermal_state":"nominal: projected peak 43.9 \u00b0C","expected_breaches":["tokens"],"possible_breaches":[],"verdict":"doing nothing breaches tokens within 0.1 h on the central projection","warnings":[],"method":"central path and interval from the supplied forecasters; limits are the operator's declared budgets","note":"a projection, not a prediction of fact; intervals come from the forecaster's own residuals over this history"},"frontier":{"workload":"checkout-assistant","constraints":["p95 latency \u2264 12,000 ms","availability \u2265 98.000%","error rate \u2264 2.00%","task_success_rate \u2265 0.900 (share of agent tasks that reached the intended outcome) on declared-example-evalset","energy \u2264 1,800 Wh/h","security policy: compliant"],"candidates":[{"name":"watts-sim-small","energy_wh_per_1k_tokens":0.04903565079488834,"p95_latency_ms":943.7545516355569,"availability":0.9847133757961783,"error_rate":0.015286624203821653,"energy_wh_per_hour":831.9130650975841,"quality":0.79,"quality_reason":"task_success_rate 0.790 is below the floor 0.900 (evaluated on declared-example-evalset, n=200)","security_compliant":true,"security_reason":"","provenance":"simulated","evidence":["simulated window, seed 42"],"admissible":false,"reasons":["task_success_rate 0.790 is below the floor 0.900 (evaluated on declared-example-evalset, n=200)"]},{"name":"watts-sim-medium","energy_wh_per_1k_tokens":0.06656378941307908,"p95_latency_ms":4676.352659184453,"availability":0.9847133757961783,"error_rate":0.015286624203821653,"energy_wh_per_hour":1129.2862474034353,"quality":0.93,"quality_reason":"task_success_rate 0.930 \u2265 0.900 (n=200, declared-example-evalset)","security_compliant":true,"security_reason":"","provenance":"simulated","evidence":["simulated window, seed 42"],"admissible":true,"reasons":["p95 4,676 ms within SLO","task_success_rate 0.930 \u2265 0.900 (n=200, declared-example-evalset)","security policy: compliant"]},{"name":"watts-sim-large","energy_wh_per_1k_tokens":0.11445129704627903,"p95_latency_ms":58227.652611324345,"availability":0.9847133757961783,"error_rate":0.015286624203821653,"energy_wh_per_hour":1941.7205193917698,"quality":0.96,"quality_reason":"task_success_rate 0.960 \u2265 0.900 (n=200, declared-example-evalset)","security_compliant":true,"security_reason":"","provenance":"simulated","evidence":["simulated window, seed 42"],"admissible":false,"reasons":["p95 58,228 ms exceeds the SLO 12,000 ms","projected 1,942 Wh/h exceeds the budget 1,800 Wh/h"]}],"admissible":["watts-sim-medium"],"inadmissible":{"watts-sim-small":["task_success_rate 0.790 is below the floor 0.900 (evaluated on declared-example-evalset, n=200)"],"watts-sim-large":["p95 58,228 ms exceeds the SLO 12,000 ms","projected 1,942 Wh/h exceeds the budget 1,800 Wh/h"]},"pareto_front":["watts-sim-medium"],"recommendation":"watts-sim-medium","recommendation_note":"chosen as the lowest-energy admissible configuration","method":"constrained selection: admissibility is a filter, not a penalty term; the remaining trade-off is exposed as a Pareto front rather than collapsed into a score"},"plan":{"workload":"checkout-assistant","provenance":"simulated","baseline":{"provenance":"simulated","simulated":true,"duration_s":423.30000000006197,"requests":785,"successful_requests":773,"error_rate":0.015286624203821653,"cache_hits":0,"total_tokens":1994857,"tokens_per_s":4712.631703283033,"output_tokens_per_s":406.7658870776631,"gpu_energy_wh":60.80204782953652,"it_energy_wh":93.537247829541,"cooling_energy_wh":21.37532676099601,"facility_energy_wh":132.7852412572067,"pue":1.4195974794895598,"wh_per_1k_tokens":0.026060112263350456,"facility_wh_per_1k_tokens":0.06656378941307908,"wh_per_request":0.06622445524755477,"wh_per_successful_request":0.06725251923587386,"p50_latency_ms":2053.328758448482,"p95_latency_ms":4676.352659184453,"p99_latency_ms":6186.846306527117,"mean_batch_size":1.2089171974522293,"max_gpu_temp_c":43.9304650227751,"mean_clock_factor":1.0,"throttled_fraction":0.0,"exceeded_critical_temp":false,"queue_wait_p50_ms":145.19509526624574,"queue_wait_p95_ms":2219.4908017666535,"queue_wait_p99_ms":2926.9421488360194,"service_p50_ms":1503.4833333333336,"service_p95_ms":3513.5166666666664,"mean_queue_wait_ms":600.762101954757,"mean_service_ms":1644.5404390279139,"queue_share_of_latency":0.26756398792112424,"mean_queue_depth":1.0666115507263494,"max_queue_depth":9,"device_utilization":0.6757411125546239,"throughput_requests_s":1.854476730450945,"facility_wh_per_hour":1129.2862474034353},"steps":[{"order":1,"change":"Enable prefix caching","action":"enable_prefix_cache","energy_delta_pct_at_this_step":-4.843460684422282,"cumulative_energy_delta_pct":-4.843460684422282,"p95_before_ms":4676.352659184453,"p95_after_ms":4579.05356298625,"policy_result":{"allow":true,"rule_id":"WATTS-ALLOW","reason":"no deny rule matched"},"approval_requirement":"human approval required"},{"order":2,"change":"Enable per-tenant response cache","action":"enable_response_cache","energy_delta_pct_at_this_step":-2.748588926141161,"cumulative_energy_delta_pct":-7.458922786549412,"p95_before_ms":4579.05356298625,"p95_after_ms":4245.542404103998,"policy_result":{"allow":true,"rule_id":"WATTS-ALLOW","reason":"no deny rule matched"},"approval_requirement":"human approval required"}],"rejected":[{"candidate":{"id":"cand-549ac5e9","name":"Widen the dynamic batching window","action":"increase_batch_window","knobs":{"max_batch":16,"max_wait_s":0.2},"rationale":"Batches are small while the SLO still has latency headroom to spend.","evidence":["mean batch size 1.2","7,324 ms of p95 headroom remaining"],"reversible":true},"energy_delta_wh":-7.85572333167478e-05,"energy_delta_pct":-0.11801797044522248,"latency_delta_ms":20.759339308891867,"quality_delta":0.0,"security_impact":"none","availability_impact":"none","confidence":"low","evidence":["mean batch size 1.2","7,324 ms of p95 headroom remaining","simulated: 0.0665 vs 0.0666 facility Wh/1k tokens"],"provenance":"simulated","policy_result":{"allow":true,"rule_id":"WATTS-ALLOW","reason":"no deny rule matched"},"approval_requirement":"blocked","admissible":false,"reasons":["energy change -0.1% does not clear the 1.0% threshold worth a change"]},{"candidate":{"id":"cand-04299a14","name":"Route by task quality tier","action":"enable_routing","knobs":{"routing":true},"rationale":"Every task is served by one model regardless of the quality it needs.","evidence":["single-model serving observed in the window"],"reversible":true},"energy_delta_wh":0.007696786260506683,"energy_delta_pct":11.56302297145713,"latency_delta_ms":19545.357380627724,"quality_delta":0.0,"security_impact":"blocked by policy","availability_impact":"none","confidence":"low","evidence":["single-model serving observed in the window","simulated: 0.0743 vs 0.0666 facility Wh/1k tokens"],"provenance":"simulated","policy_result":{"allow":false,"rule_id":"WATTS-SEC-007","reason":"expected latency increase exceeds the remaining SLO headroom"},"approval_requirement":"blocked","admissible":false,"reasons":["WATTS-SEC-007: expected latency increase exceeds the remaining SLO headroom","p95 would reach 24,222 ms, beyond the SLO 12,000 ms","energy change +11.6% does not clear the 1.0% threshold worth a change"]}],"final_metrics":{"provenance":"simulated","simulated":true,"duration_s":423.30000000006197,"requests":785,"successful_requests":773,"error_rate":0.015286624203821653,"cache_hits":61,"total_tokens":1994857,"tokens_per_s":4712.631703283033,"output_tokens_per_s":406.7658870776631,"gpu_energy_wh":53.03745610675333,"it_energy_wh":85.77265610675829,"cooling_energy_wh":19.235569866472023,"facility_energy_wh":122.88089263989829,"pue":1.432634807145912,"wh_per_1k_tokens":0.0205328696286881,"facility_wh_per_1k_tokens":0.06159884775695616,"wh_per_request":0.0521785206482495,"wh_per_successful_request":0.05298853649272427,"p50_latency_ms":1382.0125991476896,"p95_latency_ms":4245.542404103998,"p99_latency_ms":5595.026669683197,"mean_batch_size":1.0420382165605095,"max_gpu_temp_c":42.76261649666624,"mean_clock_factor":1.0,"throttled_fraction":0.0,"exceeded_critical_temp":false,"queue_wait_p50_ms":135.56521558550116,"queue_wait_p95_ms":1912.4061934579722,"queue_wait_p99_ms":2805.6703166082,"service_p50_ms":903.8000000000001,"service_p95_ms":3495.366666666667,"mean_queue_wait_ms":441.23380508023087,"mean_service_ms":1245.4573899884265,"queue_share_of_latency":0.2615972659193672,"mean_queue_depth":0.7746545411597968,"max_queue_depth":6,"device_utilization":0.5383252627849298,"throughput_requests_s":1.854476730450945,"facility_wh_per_hour":1045.0536581704916},"final_validation":{"checks":{"p95_within_slo":true,"error_rate_within_limit":true,"no_thermal_excursion":true,"within_energy_budget":true},"passed":true,"failed":[],"note":"validation runs on the final state: a sequence of individually safe steps can still land somewhere unsafe"},"energy_delta_pct":-7.458922786549412,"naive_sum_of_steps_pct":-7.592049610563443,"interaction_error_pct":0.1331268240140311,"note":"each step was re-simulated on the state left by the previous one; the interaction error is what summing independent estimates would have got wrong"},"security_gate":{"proposals":[{"recommendation":"Enable prefix / KV caching for the shared system context","energy_wh":-10.27345611795743,"security":"requires review","state":"awaiting_approval","reason":"impact analysed and policy passed; waiting for a human decision","evidence":["prefix e734607bd163b66c re-sent 323x","prefix d7698039b6057982 re-sent 196x"]},{"recommendation":"Cache responses for repeated identical prompts","energy_wh":-4.752179275143138,"security":"requires review","state":"awaiting_approval","reason":"impact analysed and policy passed; waiting for a human decision","evidence":["prompt 5cba940b88b68fe5 sent 3x to watts-sim-medium for tenant tenant-a","prompt 823556f86aa2cb0e sent 2x to watts-sim-medium for tenant tenant-a"]},{"recommendation":"Reduce the request failure rate before tuning anything else","energy_wh":-0.5697478429746456,"security":"none","state":"approved","reason":"no approval required for this class of change","evidence":["12 of 785 requests failed","failure energy is pure waste: fix the error rate before tuning the batch size"]},{"recommendation":"Deploy a shorter-context variant for this workload","energy_wh":0.0,"security":"none","state":"awaiting_approval","reason":"impact analysed and policy passed; waiting for a human decision","evidence":["601 of 785 requests below 10% window use","a smaller-window deployment of the same model frees KV cache memory and raises batch size"]}],"executed":0,"note":"the assistant may propose and simulate; approval and execution require a human with the operator role, so this run changes nothing"},"finops":{"currency":"USD","total":1.2836895089510503,"composition":{"energy":0.013789508950864443,"accelerator":1.1288000000001652,"host_infrastructure":0.14110000000002065,"network":0.0,"storage":0.0},"cooling_energy_within_energy":0.002565039211319521,"convention":"electricity billed separately from the accelerator rate; all lines add","unit_costs":{"cost_per_1k_tokens":0.0006434995134744246,"energy_cost_per_1k_tokens":6.912530046446659e-06,"cost_per_successful_task":0.0016606591318901037},"carbon_g":50.45839167773855,"carbon_note":"derived from energy \u00d7 operator-supplied grid intensity; not a cost and not a measurement","allocations":[{"key":"summarization","dimension":"task_class","requests":161,"successful_requests":160,"tokens":736307,"energy_wh":18.19103689369678,"cost_per_request":0.0027899956057436063,"cost_per_successful_task":0.0028074330782795038,"cost_per_1k_tokens":0.0006100570720157768,"energy_cost_per_1k_tokens":6.553288311886087e-06,"breakdown":{"energy":0.004825232057059909,"accelerator":0.39499027597125397,"host":0.049373784496406746,"network":0.0,"storage":0.0,"cooling_energy":0.0008975598387278854,"currency":"USD","double_counted":false,"note":"electricity billed separately from the accelerator rate; all lines add; allocated by energy share (35.0%)","total":0.4491892925247206,"energy_share":0.010742090555941643}},{"key":"reasoning","dimension":"task_class","requests":105,"successful_requests":105,"tokens":262204,"energy_wh":13.159098805697948,"cost_per_request":0.0030946304136252436,"cost_per_successful_task":0.0030946304136252436,"cost_per_1k_tokens":0.0012392495668664496,"energy_cost_per_1k_tokens":1.3312131068690857e-05,"breakdown":{"energy":0.0034904940147350177,"accelerator":0.2857295105919249,"host":0.035716188823990615,"network":0.0,"storage":0.0,"cooling_energy":0.0006492801191524774,"currency":"USD","double_counted":false,"note":"electricity billed separately from the accelerator rate; all lines add; allocated by energy share (25.3%)","total":0.32493619343065056,"energy_share":0.010742090555941641}},{"key":"extraction","dimension":"task_class","requests":196,"successful_requests":190,"tokens":532283,"energy_wh":12.592159698330548,"cost_per_request":0.0015864123867718718,"cost_per_successful_task":0.001636509620038352,"cost_per_1k_tokens":0.0005841569762838318,"energy_cost_per_1k_tokens":6.275067138125975e-06,"breakdown":{"energy":0.0033401115614831085,"accelerator":0.27341930332960335,"host":0.03417741291620042,"network":0.0,"storage":0.0,"cooling_energy":0.0006213069048299044,"currency":"USD","double_counted":false,"note":"electricity billed separately from the accelerator rate; all lines add; allocated by energy share (24.2%)","total":0.3109368278072869,"energy_share":0.010742090555941641}},{"key":"classification","dimension":"task_class","requests":323,"successful_requests":318,"tokens":464063,"energy_wh":8.043901971605225,"cost_per_request":0.0006149448767442487,"cost_per_successful_task":0.0006246138213471457,"cost_per_1k_tokens":0.0004280177372218693,"energy_cost_per_1k_tokens":4.597805292786554e-06,"breakdown":{"energy":0.0021336713175864066,"accelerator":0.17466091010738305,"host":0.02183261376342288,"network":0.0,"storage":0.0,"cooling_energy":0.00039689234860925413,"currency":"USD","double_counted":false,"note":"electricity billed separately from the accelerator rate; all lines add; allocated by energy share (15.5%)","total":0.19862719518839234,"energy_share":0.010742090555941643}}]},"audit":{"entries":8,"chain_valid":true,"first_broken_index":null,"head":"73e6217305685296b2a946c6c577ac2196310194a790a566fce26b661639686c","checkpoint":{"index":7,"head":"73e6217305685296b2a946c6c577ac2196310194a790a566fce26b661639686c","timestamp":1789726518.2316236,"entries":8,"policy_version":"watts-policy-1"},"policy_version":"watts-policy-1","note":"hash chaining evidences sequence integrity; anchor the head externally for tamper resistance"},"benchmark":{"status":"available","provenance":"simulated","generated_at":null,"rows":[{"strategy":"baseline","facility_kwh":0.7316955846391413,"wh_per_1k_tokens":0.08413464725294233,"wh_per_request":0.21035000639280646,"wh_per_successful_request":0.2124855394526319,"tokens_per_s":4814.822580646704,"p95_latency_ms":48868.47004327165,"mean_batch_size":3.3819095477386933,"pue":1.3956418060414582,"error_rate":0.01005025125628145,"max_gpu_temp_c":51.97020319434838,"throttled_fraction":0.0,"slo_met":false,"throughput_requests_s":1.9258064516135205,"queue_share_of_latency":0.4768288295588773,"quality":0.96,"quality_metric":"task_success_rate","quality_state":"meets floor","security_compliant":true,"security_reason":"all 1 model(s) used are on the allowlist","admissible":false,"energy_per_token_vs_baseline_pct":0.0,"p95_latency_vs_baseline_pct":0.0},{"strategy":"dynamic_batching","facility_kwh":0.7338439402835019,"wh_per_1k_tokens":0.08414134618596145,"wh_per_request":0.21044295346073108,"wh_per_successful_request":0.21257822581828079,"tokens_per_s":4819.25591398004,"p95_latency_ms":36440.57960440676,"mean_batch_size":3.689732142857143,"pue":1.3966767113230423,"error_rate":0.010044642857142905,"max_gpu_temp_c":54.81197905067767,"throttled_fraction":0.0,"slo_met":false,"throughput_requests_s":1.9268817204307251,"queue_share_of_latency":0.34160761390736444,"quality":0.96,"quality_metric":"task_success_rate","quality_state":"meets floor","security_compliant":true,"security_reason":"all 1 model(s) used are on the allowlist","admissible":false,"energy_per_token_vs_baseline_pct":0.007962157372550762,"p95_latency_vs_baseline_pct":-25.431306582465833},{"strategy":"token_optimization","facility_kwh":0.6702366754951778,"wh_per_1k_tokens":0.07300341150536015,"wh_per_request":0.1800703288869518,"wh_per_successful_request":0.18189742354307645,"tokens_per_s":4812.619086505943,"p95_latency_ms":24567.748248639677,"mean_batch_size":2.0775669642857144,"pue":1.4051123749665446,"error_rate":0.010044642857142905,"max_gpu_temp_c":52.40762054012299,"throttled_fraction":0.0,"slo_met":false,"throughput_requests_s":1.9511132886935174,"queue_share_of_latency":0.348332608153825,"quality":0.94,"quality_metric":"task_success_rate","quality_state":"meets floor","security_compliant":true,"security_reason":"all 1 model(s) used are on the allowlist","admissible":false,"energy_per_token_vs_baseline_pct":-13.230263762938524,"p95_latency_vs_baseline_pct":-49.72679065482175},{"strategy":"model_routing","facility_kwh":0.5342991399053871,"wh_per_1k_tokens":0.04041350896097976,"wh_per_request":0.10107680196444581,"wh_per_successful_request":0.10210238394604673,"tokens_per_s":4953.479221929004,"p95_latency_ms":17976.54288669268,"mean_batch_size":1.8046875,"pue":1.4388803803620194,"error_rate":0.010044642857142905,"max_gpu_temp_c":47.297900240077716,"throttled_fraction":0.0,"slo_met":false,"throughput_requests_s":1.9805481874453414,"queue_share_of_latency":0.42061230952150597,"quality":0.92,"quality_metric":"task_success_rate","quality_state":"meets floor","security_compliant":true,"security_reason":"all 3 model(s) used are on the allowlist","admissible":false,"energy_per_token_vs_baseline_pct":-51.96567611500096,"p95_latency_vs_baseline_pct":-63.21443484771477},{"strategy":"combined","facility_kwh":0.5069467732427534,"wh_per_1k_tokens":0.034188676893014684,"wh_per_request":0.08432984384411767,"wh_per_successful_request":0.08518550178616621,"tokens_per_s":4878.483527400638,"p95_latency_ms":14793.738649050825,"mean_batch_size":1.37109375,"pue":1.4479070514601105,"error_rate":0.010044642857142905,"max_gpu_temp_c":47.16036276794823,"throttled_fraction":0.0,"slo_met":true,"throughput_requests_s":1.9778157938309657,"queue_share_of_latency":0.4053634657089483,"quality":0.92,"quality_metric":"task_success_rate","quality_state":"meets floor","security_compliant":true,"security_reason":"all 3 model(s) used are on the allowlist","admissible":true,"energy_per_token_vs_baseline_pct":-59.36433085619308,"p95_latency_vs_baseline_pct":-69.72743645145553}],"disclaimer":"These figures come from the WATTS digital twin. They characterise the model's response to each strategy and must not be quoted as hardware measurements. Run the same harness against a metered GPU to produce measured results.","note":"read from a previous run; re-run the benchmark to refresh it"},"experiments":{"status":"available","experiments":[{"experiment":"exp01_context_impact","provenance":"simulated","findings":["Input grew 32x; energy per request grew 6.8x, so prefill cost is close to linear in context length while the fixed per-request cost dilutes.","Energy per 1k tokens fell from 0.0525 to 0.0153 Wh: long contexts are cheaper *per token* and more expensive *per request*. Reporting only Wh/token hides the cost of context growth."],"seed":null},{"experiment":"exp02_output_limit","provenance":"simulated","findings":["Each additional output token costs about 0.1424 mWh in this configuration, against a 2,000-token input held constant.","Going from 32 to 1024 output tokens raised energy per request by 387% and p95 latency by 645%."],"seed":null},{"experiment":"exp03_dynamic_batching","provenance":"simulated","findings":["Lowest energy per token: batch<=16, wait 300 ms at 0.02243 Wh/1k (-19% against batch 1), with p95 latency -89%.","Batching amortises fixed per-step cost over more tokens, so energy per token falls while the accelerator draws more power: total power up, energy per unit of work down."],"seed":null},{"experiment":"exp04_model_routing","provenance":"simulated","findings":["Routing cut energy per token by 55% against serving everything on the large model, while p95 latency moved -48%.","The saving comes from the task mix: classification and extraction do not need a frontier model, and reasoning still gets one. Routing is a mix decision, not a uniform downgrade."],"seed":null},{"experiment":"exp05_gpu_utilization","provenance":"simulated","findings":["Energy per token fell from 0.02569 Wh/1k at 0.25 rps to 0.01959 Wh/1k at 4.0 rps: the same idle power spread over more work.","Facility energy rose from 78.8 Wh to 139.7 Wh over the same window. Absolute consumption and consumption per token move in opposite directions, which is why WATTS reports both."],"seed":null},{"experiment":"exp06_thermal_throttling","provenance":"simulated","findings":["From the design point to the worst case, peak GPU temperature went from 46.8 C to 100.9 C and the mean clock factor from 1.000 to 0.736.","PUE moved 1.403 -> 1.959. Facility energy per 1k tokens rose +44% while GPU energy per 1k tokens moved +8%: most of the damage is in the facility, not on the die, which is why a GPU-only view of efficiency misses it."],"seed":null},{"experiment":"exp07_energy_aware_scheduling","provenance":"simulated","findings":["Critical inference started immediately under every policy (maximum delay 0 s). This is the invariant the scheduler exists to preserve.","Price-aware deferral moved flexible work by up to 2 h and changed energy cost by -10.1% and carbon by -5.8% against FIFO."],"seed":null},{"experiment":"exp08_security_constrained_optimization","provenance":"simulated","findings":["The policy engine blocked 5 of 8 candidates, leaving 860 Wh of the 2340 Wh an unconstrained optimiser would claim.","The 1480 Wh difference is not a saving that was lost. It is the set of changes that would have shared a cache across tenants, removed an audit control, downgraded a critical workload, and spent latency the SLO did not have."],"seed":null},{"experiment":"exp09_prefill_vs_decode","provenance":"simulated","findings":["Fitted on this run, one output token costs 12.5\u00d7 what one input token costs \u2014 output tokens are more expensive here. The fit recovers 1.059e-05 Wh per input token and 1.323e-04 Wh per output token, with a per-request baseline of 0.00409 Wh (R\u00b2 0.938).","Swapping the ratio at constant total tokens is not neutral: 100/1,000 costs 0.1487 Wh per request against 0.0303 Wh for 1,000/100 \u2014 +390%."],"seed":11}],"count":9},"series":{"power":[{"t":0.0,"gpu":208.0,"host":278.4,"cooling":247.7},{"t":2.3,"gpu":656.0,"host":278.4,"cooling":337.2},{"t":4.7,"gpu":686.5,"host":278.4,"cooling":345.4},{"t":7.0,"gpu":686.5,"host":278.4,"cooling":347.7},{"t":9.4,"gpu":663.7,"host":278.4,"cooling":345.1},{"t":11.8,"gpu":671.3,"host":278.4,"cooling":348.4},{"t":14.1,"gpu":551.6,"host":278.4,"cooling":325.1},{"t":16.5,"gpu":320.0,"host":278.4,"cooling":277.5},{"t":18.8,"gpu":432.0,"host":278.4,"cooling":301.9},{"t":21.2,"gpu":320.0,"host":278.4,"cooling":279.0},{"t":23.5,"gpu":663.7,"host":278.4,"cooling":353.3},{"t":25.9,"gpu":544.0,"host":278.4,"cooling":328.5},{"t":28.2,"gpu":439.6,"host":278.4,"cooling":307.0},{"t":30.6,"gpu":432.0,"host":278.4,"cooling":306.2},{"t":32.9,"gpu":320.0,"host":278.4,"cooling":282.0},{"t":35.3,"gpu":656.0,"host":278.4,"cooling":355.3},{"t":37.6,"gpu":544.0,"host":278.4,"cooling":331.6},{"t":39.9,"gpu":656.0,"host":278.4,"cooling":357.0},{"t":42.3,"gpu":671.3,"host":278.4,"cooling":361.3},{"t":44.6,"gpu":671.3,"host":278.4,"cooling":362.3},{"t":47.0,"gpu":551.6,"host":278.4,"cooling":336.7},{"t":49.3,"gpu":656.0,"host":278.4,"cooling":360.7},{"t":51.7,"gpu":656.0,"host":278.4,"cooling":361.4},{"t":54.0,"gpu":432.0,"host":278.4,"cooling":311.6},{"t":56.4,"gpu":320.0,"host":278.4,"cooling":286.6},{"t":58.7,"gpu":432.0,"host":278.4,"cooling":311.9},{"t":61.1,"gpu":432.0,"host":278.4,"cooling":312.0},{"t":63.4,"gpu":320.0,"host":278.4,"cooling":286.9},{"t":65.8,"gpu":656.1,"host":278.4,"cooling":362.6},{"t":68.1,"gpu":551.9,"host":278.4,"cooling":339.7},{"t":70.5,"gpu":432.1,"host":278.4,"cooling":312.3},{"t":72.8,"gpu":432.3,"host":278.4,"cooling":312.8},{"t":75.2,"gpu":432.6,"host":278.4,"cooling":313.3},{"t":77.5,"gpu":544.8,"host":278.4,"cooling":339.3},{"t":79.9,"gpu":552.9,"host":278.4,"cooling":341.7},{"t":82.2,"gpu":440.5,"host":278.4,"cooling":316.3},{"t":84.6,"gpu":432.5,"host":278.4,"cooling":314.1},{"t":86.9,"gpu":657.4,"host":278.4,"cooling":365.1},{"t":89.3,"gpu":432.9,"host":278.4,"cooling":314.0},{"t":91.6,"gpu":544.9,"host":278.4,"cooling":339.7},{"t":94.0,"gpu":440.0,"host":278.4,"cooling":315.1},{"t":96.3,"gpu":432.5,"host":278.4,"cooling":313.0},{"t":98.7,"gpu":432.2,"host":278.4,"cooling":312.8},{"t":101.0,"gpu":544.7,"host":278.4,"cooling":338.4},{"t":103.4,"gpu":560.4,"host":278.4,"cooling":342.5},{"t":105.7,"gpu":545.1,"host":278.4,"cooling":339.1},{"t":108.1,"gpu":433.3,"host":278.4,"cooling":314.2},{"t":110.4,"gpu":545.3,"host":278.4,"cooling":339.5},{"t":112.8,"gpu":545.4,"host":278.4,"cooling":339.8},{"t":115.1,"gpu":665.9,"host":278.4,"cooling":367.4},{"t":117.5,"gpu":561.6,"host":278.4,"cooling":344.2},{"t":119.8,"gpu":441.7,"host":278.4,"cooling":316.7},{"t":122.2,"gpu":659.0,"host":278.4,"cooling":366.3},{"t":124.5,"gpu":321.0,"host":278.4,"cooling":288.8},{"t":126.9,"gpu":658.2,"host":278.4,"cooling":365.4},{"t":129.2,"gpu":658.6,"host":278.4,"cooling":365.8},{"t":131.6,"gpu":433.9,"host":278.4,"cooling":315.0},{"t":133.9,"gpu":433.8,"host":278.4,"cooling":315.1},{"t":136.3,"gpu":321.4,"host":278.4,"cooling":289.0},{"t":138.6,"gpu":433.6,"host":278.4,"cooling":314.4},{"t":141.0,"gpu":433.1,"host":278.4,"cooling":314.0},{"t":143.3,"gpu":433.5,"host":278.4,"cooling":314.5},{"t":145.7,"gpu":433.2,"host":278.4,"cooling":314.7},{"t":148.0,"gpu":658.6,"host":278.4,"cooling":366.3},{"t":150.4,"gpu":690.0,"host":278.4,"cooling":374.1},{"t":152.8,"gpu":706.0,"host":278.4,"cooling":378.3},{"t":155.1,"gpu":699.1,"host":278.4,"cooling":377.2},{"t":157.5,"gpu":692.3,"host":278.4,"cooling":376.1},{"t":159.8,"gpu":564.6,"host":278.4,"cooling":347.1},{"t":162.2,"gpu":669.9,"host":278.4,"cooling":371.2},{"t":164.5,"gpu":662.6,"host":278.4,"cooling":369.9},{"t":166.9,"gpu":557.4,"host":278.4,"cooling":345.9},{"t":169.2,"gpu":437.0,"host":278.4,"cooling":318.3},{"t":171.6,"gpu":550.0,"host":278.4,"cooling":344.7},{"t":173.9,"gpu":323.8,"host":278.4,"cooling":292.3},{"t":176.3,"gpu":436.2,"host":278.4,"cooling":318.0},{"t":178.6,"gpu":436.1,"host":278.4,"cooling":318.2},{"t":181.0,"gpu":322.6,"host":278.4,"cooling":291.8},{"t":183.3,"gpu":435.3,"host":278.4,"cooling":317.5},{"t":185.7,"gpu":661.8,"host":278.4,"cooling":369.7},{"t":188.0,"gpu":436.2,"host":278.4,"cooling":317.8},{"t":190.4,"gpu":435.6,"host":278.4,"cooling":317.8},{"t":192.7,"gpu":322.8,"host":278.4,"cooling":291.0},{"t":195.1,"gpu":660.9,"host":278.4,"cooling":369.2},{"t":197.4,"gpu":548.7,"host":278.4,"cooling":343.6},{"t":199.8,"gpu":436.0,"host":278.4,"cooling":317.8},{"t":202.1,"gpu":436.0,"host":278.4,"cooling":317.8},{"t":204.5,"gpu":661.1,"host":278.4,"cooling":370.4},{"t":206.8,"gpu":669.5,"host":278.4,"cooling":372.7},{"t":209.2,"gpu":662.3,"host":278.4,"cooling":371.4},{"t":211.5,"gpu":550.1,"host":278.4,"cooling":345.5},{"t":213.9,"gpu":330.8,"host":278.4,"cooling":293.9},{"t":216.2,"gpu":548.8,"host":278.4,"cooling":344.1},{"t":218.6,"gpu":323.5,"host":278.4,"cooling":292.0},{"t":220.9,"gpu":435.9,"host":278.4,"cooling":317.9},{"t":223.3,"gpu":435.3,"host":278.4,"cooling":317.1},{"t":225.6,"gpu":435.5,"host":278.4,"cooling":316.6},{"t":228.0,"gpu":322.8,"host":278.4,"cooling":290.8},{"t":230.3,"gpu":548.8,"host":278.4,"cooling":343.4},{"t":232.7,"gpu":669.6,"host":278.4,"cooling":371.7},{"t":235.0,"gpu":662.5,"host":278.4,"cooling":370.5},{"t":237.4,"gpu":549.1,"host":278.4,"cooling":343.8},{"t":239.7,"gpu":549.6,"host":278.4,"cooling":343.9},{"t":242.1,"gpu":436.4,"host":278.4,"cooling":317.8},{"t":244.4,"gpu":549.3,"host":278.4,"cooling":344.2},{"t":246.8,"gpu":549.9,"host":278.4,"cooling":344.3},{"t":249.1,"gpu":558.2,"host":278.4,"cooling":346.6},{"t":251.5,"gpu":549.9,"host":278.4,"cooling":344.4},{"t":253.8,"gpu":550.3,"host":278.4,"cooling":344.7},{"t":256.2,"gpu":323.5,"host":278.4,"cooling":292.0},{"t":258.5,"gpu":436.4,"host":278.4,"cooling":317.7},{"t":260.9,"gpu":549.6,"host":278.4,"cooling":343.8},{"t":263.2,"gpu":549.6,"host":278.4,"cooling":343.7},{"t":265.6,"gpu":444.2,"host":278.4,"cooling":319.3},{"t":267.9,"gpu":209.9,"host":278.4,"cooling":265.1},{"t":270.3,"gpu":549.2,"host":278.4,"cooling":344.0},{"t":272.6,"gpu":436.2,"host":278.4,"cooling":318.1},{"t":275.0,"gpu":436.2,"host":278.4,"cooling":318.3},{"t":277.3,"gpu":556.7,"host":278.4,"cooling":346.7},{"t":279.7,"gpu":436.5,"host":278.4,"cooling":319.0},{"t":282.0,"gpu":661.8,"host":278.4,"cooling":371.2},{"t":284.4,"gpu":435.3,"host":278.4,"cooling":318.1},{"t":286.7,"gpu":322.5,"host":278.4,"cooling":291.2},{"t":289.1,"gpu":661.3,"host":278.4,"cooling":369.3},{"t":291.4,"gpu":669.6,"host":278.4,"cooling":371.7},{"t":293.8,"gpu":435.9,"host":278.4,"cooling":317.3},{"t":296.1,"gpu":209.6,"host":278.4,"cooling":264.5},{"t":298.5,"gpu":322.2,"host":278.4,"cooling":290.2},{"t":300.8,"gpu":668.8,"host":278.4,"cooling":370.2},{"t":303.2,"gpu":564.3,"host":278.4,"cooling":346.6},{"t":305.5,"gpu":548.8,"host":278.4,"cooling":343.3},{"t":307.9,"gpu":549.4,"host":278.4,"cooling":343.6},{"t":310.2,"gpu":549.2,"host":278.4,"cooling":343.8},{"t":312.6,"gpu":662.7,"host":278.4,"cooling":369.9},{"t":314.9,"gpu":549.6,"host":278.4,"cooling":344.0},{"t":317.3,"gpu":549.3,"host":278.4,"cooling":343.9},{"t":319.6,"gpu":549.5,"host":278.4,"cooling":344.2},{"t":322.0,"gpu":549.7,"host":278.4,"cooling":344.2},{"t":324.3,"gpu":549.8,"host":278.4,"cooling":344.6},{"t":326.7,"gpu":444.5,"host":278.4,"cooling":320.4},{"t":329.0,"gpu":549.8,"host":278.4,"cooling":345.2},{"t":331.4,"gpu":549.4,"host":278.4,"cooling":345.1},{"t":333.7,"gpu":436.9,"host":278.4,"cooling":318.5},{"t":336.1,"gpu":436.9,"host":278.4,"cooling":317.9},{"t":338.4,"gpu":436.4,"host":278.4,"cooling":317.9},{"t":340.8,"gpu":549.5,"host":278.4,"cooling":344.2},{"t":343.1,"gpu":549.8,"host":278.4,"cooling":344.6},{"t":345.5,"gpu":549.8,"host":278.4,"cooling":344.9},{"t":347.8,"gpu":323.8,"host":278.4,"cooling":292.5},{"t":350.2,"gpu":436.8,"host":278.4,"cooling":319.1},{"t":352.5,"gpu":435.8,"host":278.4,"cooling":318.9},{"t":354.9,"gpu":436.6,"host":278.4,"cooling":318.5},{"t":357.2,"gpu":549.1,"host":278.4,"cooling":344.8},{"t":359.6,"gpu":565.7,"host":278.4,"cooling":348.8},{"t":361.9,"gpu":436.6,"host":278.4,"cooling":318.9},{"t":364.3,"gpu":437.1,"host":278.4,"cooling":318.7},{"t":366.6,"gpu":323.8,"host":278.4,"cooling":292.5},{"t":369.0,"gpu":548.5,"host":278.4,"cooling":344.8},{"t":371.3,"gpu":549.3,"host":278.4,"cooling":345.0},{"t":373.7,"gpu":322.3,"host":278.4,"cooling":291.6},{"t":376.0,"gpu":548.0,"host":278.4,"cooling":343.9},{"t":378.4,"gpu":434.8,"host":278.4,"cooling":317.2},{"t":380.7,"gpu":548.6,"host":278.4,"cooling":343.8},{"t":383.1,"gpu":661.5,"host":278.4,"cooling":370.4},{"t":385.4,"gpu":661.8,"host":278.4,"cooling":370.5},{"t":387.8,"gpu":549.2,"host":278.4,"cooling":344.6},{"t":390.1,"gpu":669.8,"host":278.4,"cooling":373.0},{"t":392.5,"gpu":209.8,"host":278.4,"cooling":265.5},{"t":394.8,"gpu":548.9,"host":278.4,"cooling":343.8},{"t":397.2,"gpu":443.4,"host":278.4,"cooling":319.1},{"t":399.5,"gpu":547.8,"host":278.4,"cooling":342.7},{"t":401.9,"gpu":435.2,"host":278.4,"cooling":316.7},{"t":404.2,"gpu":435.0,"host":278.4,"cooling":316.6},{"t":406.6,"gpu":548.2,"host":278.4,"cooling":342.9},{"t":408.9,"gpu":548.1,"host":278.4,"cooling":343.2},{"t":411.3,"gpu":661.5,"host":278.4,"cooling":369.2},{"t":413.6,"gpu":662.1,"host":278.4,"cooling":369.8},{"t":416.0,"gpu":549.1,"host":278.4,"cooling":343.6},{"t":418.3,"gpu":436.3,"host":278.4,"cooling":317.3},{"t":420.7,"gpu":435.6,"host":278.4,"cooling":316.6},{"t":423.0,"gpu":322.8,"host":278.4,"cooling":290.9}],"queue":[{"t":0.0,"depth":0},{"t":2.3,"depth":2},{"t":4.7,"depth":4},{"t":7.0,"depth":3},{"t":9.4,"depth":2},{"t":11.8,"depth":0},{"t":14.1,"depth":0},{"t":16.5,"depth":0},{"t":18.8,"depth":2},{"t":21.2,"depth":0},{"t":23.5,"depth":1},{"t":25.9,"depth":3},{"t":28.2,"depth":2},{"t":30.6,"depth":0},{"t":32.9,"depth":0},{"t":35.3,"depth":1},{"t":37.6,"depth":2},{"t":39.9,"depth":2},{"t":42.3,"depth":1},{"t":44.6,"depth":5},{"t":47.0,"depth":2},{"t":49.3,"depth":4},{"t":51.7,"depth":3},{"t":54.0,"depth":0},{"t":56.4,"depth":0},{"t":58.7,"depth":1},{"t":61.1,"depth":1},{"t":63.4,"depth":1},{"t":65.8,"depth":2},{"t":68.1,"depth":0},{"t":70.5,"depth":0},{"t":72.8,"depth":2},{"t":75.2,"depth":1},{"t":77.5,"depth":3},{"t":79.9,"depth":3},{"t":82.2,"depth":1},{"t":84.6,"depth":0},{"t":86.9,"depth":0},{"t":89.3,"depth":1},{"t":91.6,"depth":3},{"t":94.0,"depth":0},{"t":96.3,"depth":0},{"t":98.7,"depth":0},{"t":101.0,"depth":3},{"t":103.4,"depth":1},{"t":105.7,"depth":0},{"t":108.1,"depth":0},{"t":110.4,"depth":0},{"t":112.8,"depth":3},{"t":115.1,"depth":2},{"t":117.5,"depth":1},{"t":119.8,"depth":0},{"t":122.2,"depth":0},{"t":124.5,"depth":0},{"t":126.9,"depth":0},{"t":129.2,"depth":1},{"t":131.6,"depth":2},{"t":133.9,"depth":0},{"t":136.3,"depth":0},{"t":138.6,"depth":1},{"t":141.0,"depth":0},{"t":143.3,"depth":1},{"t":145.7,"depth":2},{"t":148.0,"depth":3},{"t":150.4,"depth":8},{"t":152.8,"depth":0},{"t":155.1,"depth":5},{"t":157.5,"depth":3},{"t":159.8,"depth":2},{"t":162.2,"depth":1},{"t":164.5,"depth":2},{"t":166.9,"depth":1},{"t":169.2,"depth":2},{"t":171.6,"depth":1},{"t":173.9,"depth":0},{"t":176.3,"depth":0},{"t":178.6,"depth":0},{"t":181.0,"depth":0},{"t":183.3,"depth":1},{"t":185.7,"depth":0},{"t":188.0,"depth":0},{"t":190.4,"depth":0},{"t":192.7,"depth":0},{"t":195.1,"depth":1},{"t":197.4,"depth":1},{"t":199.8,"depth":0},{"t":202.1,"depth":0},{"t":204.5,"depth":2},{"t":206.8,"depth":2},{"t":209.2,"depth":2},{"t":211.5,"depth":2},{"t":213.9,"depth":0},{"t":216.2,"depth":2},{"t":218.6,"depth":0},{"t":220.9,"depth":0},{"t":223.3,"depth":0},{"t":225.6,"depth":0},{"t":228.0,"depth":1},{"t":230.3,"depth":1},{"t":232.7,"depth":1},{"t":235.0,"depth":1},{"t":237.4,"depth":0},{"t":239.7,"depth":2},{"t":242.1,"depth":0},{"t":244.4,"depth":1},{"t":246.8,"depth":3},{"t":249.1,"depth":3},{"t":251.5,"depth":0},{"t":253.8,"depth":0},{"t":256.2,"depth":1},{"t":258.5,"depth":0},{"t":260.9,"depth":0},{"t":263.2,"depth":4},{"t":265.6,"depth":1},{"t":267.9,"depth":1},{"t":270.3,"depth":0},{"t":272.6,"depth":1},{"t":275.0,"depth":1},{"t":277.3,"depth":0},{"t":279.7,"depth":0},{"t":282.0,"depth":0},{"t":284.4,"depth":0},{"t":286.7,"depth":0},{"t":289.1,"depth":3},{"t":291.4,"depth":1},{"t":293.8,"depth":0},{"t":296.1,"depth":1},{"t":298.5,"depth":1},{"t":300.8,"depth":4},{"t":303.2,"depth":4},{"t":305.5,"depth":1},{"t":307.9,"depth":0},{"t":310.2,"depth":2},{"t":312.6,"depth":0},{"t":314.9,"depth":0},{"t":317.3,"depth":0},{"t":319.6,"depth":1},{"t":322.0,"depth":0},{"t":324.3,"depth":1},{"t":326.7,"depth":0},{"t":329.0,"depth":0},{"t":331.4,"depth":2},{"t":333.7,"depth":0},{"t":336.1,"depth":0},{"t":338.4,"depth":1},{"t":340.8,"depth":1},{"t":343.1,"depth":2},{"t":345.5,"depth":1},{"t":347.8,"depth":1},{"t":350.2,"depth":1},{"t":352.5,"depth":1},{"t":354.9,"depth":1},{"t":357.2,"depth":2},{"t":359.6,"depth":0},{"t":361.9,"depth":0},{"t":364.3,"depth":1},{"t":366.6,"depth":0},{"t":369.0,"depth":0},{"t":371.3,"depth":0},{"t":373.7,"depth":0},{"t":376.0,"depth":1},{"t":378.4,"depth":0},{"t":380.7,"depth":2},{"t":383.1,"depth":1},{"t":385.4,"depth":0},{"t":387.8,"depth":3},{"t":390.1,"depth":0},{"t":392.5,"depth":0},{"t":394.8,"depth":2},{"t":397.2,"depth":1},{"t":399.5,"depth":0},{"t":401.9,"depth":1},{"t":404.2,"depth":0},{"t":406.6,"depth":2},{"t":408.9,"depth":0},{"t":411.3,"depth":3},{"t":413.6,"depth":1},{"t":416.0,"depth":2},{"t":418.3,"depth":0},{"t":420.7,"depth":0},{"t":423.0,"depth":0}],"tasks":[{"task":"summarization","requests":161,"tokens":736307,"facility_wh_per_1k":0.06310449288821678},{"task":"reasoning","requests":105,"tokens":262204,"facility_wh_per_1k":0.12818835985402233},{"task":"extraction","requests":196,"tokens":532283,"facility_wh_per_1k":0.06042537894643401},{"task":"classification","requests":323,"tokens":464063,"facility_wh_per_1k":0.04427428759296405}],"prefill_wh":6.814320043740414,"decode_wh":6.7681736670049535,"thermal":{"gpus":[{"id":"gpu-0","peak_c":43.9304650227751,"clock":1.0},{"id":"gpu-1","peak_c":43.83468715860523,"clock":1.0},{"id":"gpu-2","peak_c":43.84987802331538,"clock":1.0},{"id":"gpu-3","peak_c":43.74038516806744,"clock":1.0}],"inlet_c":24.0,"throttle_c":83.0,"critical_c":92.0}},"provenance":{"values":400,"weakest":"simulated","measured_fraction":0.0,"calibrated_fraction":0.0,"by_provenance":{"simulated":{"count":400,"energy":13.582493710745362}},"uncalibrated_sources":["decode weight of profile 'watts-sim-medium' (declared-default)","prefill weight of profile 'watts-sim-medium' (declared-default)"],"sections":{"observation":"simulated","energy":"simulated","attribution":"simulated window, modelled split","forecast":"derived from simulated history","frontier":"simulated","plan":"simulated","finops":"estimated from operator-supplied rates","benchmark":"available","experiments":"available"},"declaration":"No figure in this report was entered by hand. Every number was produced by this run or read from a results file written by a previous run, and each carries the provenance of its source."}}</script>
+<script>
+const D = JSON.parse(document.getElementById("watts-data").textContent);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmt = (v, d = 2) => (v === null || v === undefined || Number.isNaN(v)) ? "—"
+  : Number(v).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const el = id => document.getElementById(id);
+const svgNS = "http://www.w3.org/2000/svg";
+function svg(w, h, label) {
+  const s = document.createElementNS(svgNS, "svg");
+  s.setAttribute("viewBox", `0 0 ${w} ${h}`); s.setAttribute("role", "img");
+  s.setAttribute("aria-label", label || ""); return s;
+}
+function node(tag, attrs, text) {
+  const e = document.createElementNS(svgNS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function tiles(host, rows) {
+  host.innerHTML = rows.map(r => `<div class="tile" style="padding:6px 0">
+    <div class="k">${esc(r.k)}</div>
+    <div class="v num" ${r.color ? `style="color:${r.color}"` : ""}>${r.v}</div>
+    ${r.f ? `<div class="f">${esc(r.f)}</div>` : ""}</div>`).join("");
+}
+
+/* ---------- masthead ---------- */
+const run = D.run;
+el("stamp").innerHTML =
+  `<b>${esc(run.run_id)}</b><br>seed <span class="num">${run.seed}</span> · config
+   <span class="num">${esc(run.configuration_hash)}</span><br>
+   policy ${esc(run.policy_version)} · WATTS ${esc(run.version)}<br>${esc(run.started_at_utc)}`;
+
+/* ---------- overview ---------- */
+const obs = D.observation, energy = D.energy, series = D.series;
+const windowS = obs.window_s || 1;
+const facilityW = energy.facility_wh * 3600 / windowS;
+const gpuW = (energy.gpu_wh) * 3600 / windowS;
+const hostW = (energy.it_wh - energy.gpu_wh) * 3600 / windowS;
+const coolW = (energy.facility_wh - energy.it_wh) * 3600 / windowS;
+el("kw").innerHTML = `${fmt(facilityW / 1000, 2)}<span class="unit">kW</span>`;
+el("pue").textContent = fmt(energy.pue.pue, 3);
+el("power-tag").textContent = energy.provenance;
+el("power-tag").className = "tag " + energy.provenance;
+
+const parts = [
+  { k: "Accelerators", w: gpuW, c: css("--gpu") },
+  { k: "Hosts, memory, network", w: hostW, c: css("--host") },
+  { k: "Cooling and conversion", w: coolW, c: css("--cooling") },
+];
+el("busbar").innerHTML = parts.map(p =>
+  `<span style="width:${(p.w / facilityW * 100).toFixed(2)}%;background:${p.c}" title="${p.k}"></span>`).join("");
+el("buskeys").innerHTML = parts.map(p =>
+  `<span><i class="dot" style="background:${p.c}"></i>${p.k}
+   <b class="num">${fmt(p.w / 1000, 2)} kW</b> (${(p.w / facilityW * 100).toFixed(0)}%)</span>`).join("");
+
+tiles(el("overview-tiles"), [
+  { k: "Tokens", v: fmt(obs.total_tokens, 0), f: `${fmt(obs.tokens_per_s, 0)} tok/s` },
+  { k: "Facility Wh / 1k tokens", v: fmt(energy.facility_wh_per_1k_tokens, 4), f: "simulated" },
+  { k: "Wh / successful request", v: fmt(energy.wh_per_successful_request, 4),
+    f: `${fmt(obs.requests, 0)} requests, ${(obs.error_rate * 100).toFixed(2)}% errors` },
+  { k: "Accelerator utilisation", v: `${(obs.queueing.device_utilization * 100).toFixed(0)}%`,
+    f: `mean batch ${fmt(D.plan.baseline.mean_batch_size, 1)}` },
+]);
+
+/* stacked power chart */
+(function () {
+  const W = 760, H = 220, L = 46, R = 8, T = 10, B = 24;
+  const s = series.power;
+  if (!s.length) return;
+  const g = svg(W, H, "Facility power over the window");
+  const maxY = Math.max(...s.map(p => p.gpu + p.host + p.cooling)) * 1.08;
+  const x = i => L + (W - L - R) * (s[i].t / (s[s.length - 1].t || 1));
+  const y = v => H - B - (H - B - T) * (v / maxY);
+  for (let i = 0; i <= 4; i++) {
+    const v = maxY * i / 4;
+    g.appendChild(node("line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: css("--grid") }));
+    g.appendChild(node("text", { x: L - 8, y: y(v) + 4, "text-anchor": "end", fill: css("--ink-dim"),
+      "font-size": 10.5, "font-family": "IBM Plex Mono, monospace" }, (v / 1000).toFixed(1)));
+  }
+  let base = s.map(() => 0);
+  [{ k: "cooling", c: css("--cooling") }, { k: "host", c: css("--host") }, { k: "gpu", c: css("--gpu") }]
+    .forEach(layer => {
+      const top = s.map((p, i) => base[i] + p[layer.k]);
+      const d = s.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(top[i]).toFixed(1)}`).join("")
+        + s.map((p, i) => `L${x(s.length - 1 - i).toFixed(1)},${y(base[s.length - 1 - i]).toFixed(1)}`).join("") + "Z";
+      g.appendChild(node("path", { d, fill: layer.c, "fill-opacity": .78 }));
+      base = top;
+    });
+  g.appendChild(node("text", { x: L, y: H - 5, fill: css("--ink-dim"), "font-size": 10.5,
+    "font-family": "IBM Plex Mono, monospace" }, "0s"));
+  g.appendChild(node("text", { x: W - R, y: H - 5, "text-anchor": "end", fill: css("--ink-dim"),
+    "font-size": 10.5, "font-family": "IBM Plex Mono, monospace" }, fmt(s[s.length - 1].t, 0) + "s"));
+  el("chart-power").appendChild(g);
+})();
+
+/* budgets + objectives */
+(function () {
+  const budgets = D.budgets, cfg = run.configuration;
+  const projectedEnergy = energy.facility_wh * 3600 / windowS;
+  const projectedTokens = obs.total_tokens * 3600 / windowS;
+  const rows = [
+    { name: "energy", used: projectedEnergy, limit: cfg.energy_budget_wh_per_hour, unit: "Wh/h" },
+    { name: "tokens", used: projectedTokens, limit: cfg.token_budget_per_hour, unit: "tok/h" },
+  ];
+  el("budget-bars").innerHTML = rows.map(r => {
+    const u = r.limit ? r.used / r.limit : 0;
+    const cls = u > 1 ? "crit" : u > 0.85 ? "hot" : "";
+    return `<div class="row"><span>${r.name}</span>
+      <span class="track"><i class="${cls}" style="width:${Math.min(u, 1) * 100}%"></i>
+      <u style="left:100%"></u></span>
+      <span class="num">${(u * 100).toFixed(0)}%</span></div>`;
+  }).join("");
+
+  const slo = D.slo;
+  const objectives = [
+    ["p95 latency", `${fmt(slo.p95_latency_ms, 0)} ms`, `${fmt(cfg.p95_latency_slo_ms, 0)} ms`,
+      slo.p95_latency_ms <= cfg.p95_latency_slo_ms],
+    ["availability", `${(slo.availability * 100).toFixed(2)}%`, `${(cfg.availability_slo * 100).toFixed(1)}%`,
+      slo.availability >= cfg.availability_slo],
+    ["Wh / successful req", fmt(slo.wh_per_successful_request, 4), fmt(cfg.max_wh_per_successful_request, 2),
+      slo.wh_per_successful_request <= cfg.max_wh_per_successful_request],
+  ];
+  el("objectives").innerHTML = "<tr><th>Objective</th><th class='n'>Observed</th><th class='n'>Target</th><th class='n'></th></tr>"
+    + objectives.map(([k, v, t, ok]) =>
+      `<tr><td>${k}</td><td class="n num">${v}</td><td class="n num dim">${t}</td>
+       <td class="n"><span class="chip ${ok ? "ok" : "bad"}">${ok ? "within" : "over"}</span></td></tr>`).join("");
+})();
+
+/* ---------- efficiency ---------- */
+const eff = D.efficiency.metrics;
+tiles(el("efficiency-tiles"), [
+  { k: "Wh per useful task", v: fmt(eff.wh_per_useful_task, 4),
+    f: `${fmt(eff.useful_tasks, 0)} tasks reached an outcome` },
+  { k: "Tokens per request", v: fmt(eff.tokens_per_request, 0),
+    f: `${(eff.useful_work_fraction * 100).toFixed(1)}% of requests succeeded` },
+  { k: "Wasted energy (upper bound)", v: fmt(D.efficiency.wasted_energy_wh_upper_bound, 3) + " Wh",
+    f: "findings overlap; not additive", color: css("--estimated") },
+  { k: "Cost per 1k tokens", v: `${D.finops.currency} ${fmt(D.finops.unit_costs.cost_per_1k_tokens, 5)}`,
+    f: `${fmt(D.finops.unit_costs.energy_cost_per_1k_tokens, 5)} of it electricity` },
+]);
+
+/* prefill vs decode */
+(function () {
+  const p = series.prefill_wh, d = series.decode_wh, total = p + d || 1;
+  const W = 300, H = 128;
+  const g = svg(W, H, "Prefill versus decode share of attributed energy");
+  const barY = 40, barH = 30;
+  const pw = (W) * (p / total);
+  g.appendChild(node("rect", { x: 0, y: barY, width: pw, height: barH, rx: 4,
+    fill: css("--simulated"), "fill-opacity": .85 }));
+  g.appendChild(node("rect", { x: pw + 3, y: barY, width: Math.max(W - pw - 3, 1), height: barH, rx: 4,
+    fill: css("--simulated"), "fill-opacity": .42 }));
+  const labels = [["prefill", p, 0, .85], ["decode", d, pw + 8, .42]];
+  labels.forEach(([name, value, x]) => {
+    g.appendChild(node("text", { x, y: barY - 10, fill: css("--ink-soft"), "font-size": 11.5,
+      "font-family": "IBM Plex Sans, sans-serif" }, name));
+    g.appendChild(node("text", { x, y: barY + barH + 18, fill: css("--ink"), "font-size": 12.5,
+      "font-family": "IBM Plex Mono, monospace" },
+      `${fmt(value, 3)} Wh · ${(value / total * 100).toFixed(0)}%`));
+  });
+  el("chart-split").appendChild(g);
+})();
+
+/* energy per token by task */
+(function () {
+  const data = series.tasks;
+  if (!data.length) return;
+  const W = 360, rowH = 32, H = data.length * rowH + 8, L = 96;
+  const g = svg(W, H, "Facility energy per 1000 tokens by task class");
+  const max = Math.max(...data.map(d => d.facility_wh_per_1k)) * 1.3;
+  data.forEach((d, i) => {
+    const y = i * rowH + 8;
+    g.appendChild(node("text", { x: 0, y: y + 11, fill: css("--ink"), "font-size": 12,
+      "font-family": "IBM Plex Sans, sans-serif" }, d.task));
+    const w = (W - L - 10) * (d.facility_wh_per_1k / max);
+    g.appendChild(node("rect", { x: L, y, width: Math.max(w, 1), height: 14, rx: 3,
+      fill: css("--simulated"), "fill-opacity": .82 }));
+    g.appendChild(node("text", { x: L, y: y + 26, fill: css("--ink-dim"), "font-size": 10.5,
+      "font-family": "IBM Plex Mono, monospace" },
+      `${fmt(d.facility_wh_per_1k, 4)} Wh · ${d.requests} req`));
+  });
+  el("chart-tasks").appendChild(g);
+})();
+
+/* findings */
+(function () {
+  const rows = D.efficiency.findings;
+  el("findings").innerHTML =
+    "<tr><th>Finding</th><th class='n'>Requests</th><th class='n'>Wasted Wh</th><th class='n'>Conf.</th><th>Recommendation</th></tr>"
+    + (rows.length ? rows.map(f => `<tr>
+        <td><span class="num dim">${esc(f.finding_id)}</span> ${esc(f.type.replace(/_/g, " "))}</td>
+        <td class="n num">${fmt(f.affected_requests, 0)}</td>
+        <td class="n num">${fmt(f.wasted_energy_wh, 3)}</td>
+        <td class="n num">${fmt(f.confidence, 2)}</td>
+        <td class="soft">${esc(f.recommendation)}</td></tr>`).join("")
+      : "<tr><td colspan='5' class='dim'>no waste patterns detected in this window</td></tr>");
+  el("findings-note").textContent = D.efficiency.note;
+})();
+
+/* queue */
+(function () {
+  const q = obs.queueing;
+  const rows = [
+    ["queue wait p95", q.queue_wait_p95_ms, q.queue_wait_p95_ms + q.service_p95_ms],
+    ["service p95", q.service_p95_ms, q.queue_wait_p95_ms + q.service_p95_ms],
+  ];
+  el("queue-bars").innerHTML = rows.map(([k, v, total]) =>
+    `<div class="row"><span>${k}</span>
+     <span class="track"><i style="width:${(v / (total || 1) * 100).toFixed(1)}%"></i></span>
+     <span class="num">${fmt(v, 0)} ms</span></div>`).join("")
+    + `<p class="dim" style="font-size:.76rem;margin:8px 0 0">
+       ${(q.queue_share_of_latency * 100).toFixed(0)}% of latency is queueing — that is the
+       part a wider batching window spends. Mean depth ${fmt(q.mean_queue_depth, 1)},
+       peak ${fmt(q.max_queue_depth, 0)}.</p>`;
+
+  const s = series.queue;
+  if (!s.length) return;
+  const W = 340, H = 90, T = 6, B = 14;
+  const g = svg(W, H, "Queue depth over the window");
+  const maxY = Math.max(1, ...s.map(p => p.depth));
+  const x = i => (W) * (s[i].t / (s[s.length - 1].t || 1));
+  const y = v => H - B - (H - B - T) * (v / maxY);
+  g.appendChild(node("polyline", {
+    points: s.map((p, i) => `${x(i).toFixed(1)},${y(p.depth).toFixed(1)}`).join(" "),
+    fill: "none", stroke: css("--derived"), "stroke-width": 1.5, "stroke-opacity": .9 }));
+  g.appendChild(node("text", { x: 0, y: 10, fill: css("--ink-dim"), "font-size": 10,
+    "font-family": "IBM Plex Mono, monospace" }, `queue depth, peak ${maxY}`));
+  el("chart-queue").appendChild(g);
+})();
+
+/* ---------- optimisation ---------- */
+(function () {
+  const plan = D.plan;
+  el("plan").innerHTML =
+    "<tr><th>#</th><th>Change</th><th class='n'>Δ at step</th><th class='n'>Cumulative</th><th class='n'>p95 after</th><th>Gate</th></tr>"
+    + (plan.steps.length ? plan.steps.map(s => `<tr>
+        <td class="num dim">${s.order}</td><td>${esc(s.change)}</td>
+        <td class="n num save">${fmt(s.energy_delta_pct_at_this_step, 1)}%</td>
+        <td class="n num">${fmt(s.cumulative_energy_delta_pct, 1)}%</td>
+        <td class="n num">${fmt(s.p95_after_ms, 0)} ms</td>
+        <td><span class="chip warn">${esc(s.approval_requirement)}</span></td></tr>`).join("")
+      : "<tr><td colspan='6' class='dim'>no admissible change found in this window</td></tr>")
+    + (plan.rejected.length ? plan.rejected.slice(0, 4).map(r => `<tr>
+        <td class="dim">—</td><td class="dim">${esc(r.candidate.name)}</td>
+        <td colspan="4" class="dim">rejected: ${esc(r.reasons[0] || "")}</td></tr>`).join("") : "");
+  el("plan-note").textContent =
+    `Plan effect ${fmt(plan.energy_delta_pct, 1)}%. Summing the same steps independently would `
+    + `have claimed ${fmt(plan.naive_sum_of_steps_pct, 1)}% — an error of `
+    + `${fmt(plan.interaction_error_pct, 1)} points. ${plan.note}.`;
+
+  const validation = plan.final_validation;
+  tiles(el("optimization-tiles"), [
+    { k: "Plan effect on energy", v: `${fmt(plan.energy_delta_pct, 1)}%`,
+      f: `${plan.steps.length} re-simulated step(s)`,
+      color: plan.energy_delta_pct < 0 ? css("--measured") : css("--ink") },
+    { k: "Final-state validation", v: validation.passed ? "passed" : "FAILED",
+      f: Object.keys(validation.checks).join(", "),
+      color: validation.passed ? css("--measured") : css("--alert") },
+    { k: "Changes executed", v: "0", f: "approval is a human action" },
+  ]);
+})();
+
+(function () {
+  const f = D.frontier;
+  el("frontier").innerHTML =
+    "<tr><th>Configuration</th><th class='n'>Wh/1k</th><th class='n'>p95</th><th class='n'>Quality</th><th class='n'></th></tr>"
+    + f.candidates.map(c => `<tr>
+        <td>${esc(c.name)}</td>
+        <td class="n num">${fmt(c.energy_wh_per_1k_tokens, 4)}</td>
+        <td class="n num">${fmt(c.p95_latency_ms, 0)} ms</td>
+        <td class="n num">${c.quality === null ? "unknown" : fmt(c.quality, 3)}</td>
+        <td class="n"><span class="chip ${c.admissible ? "ok" : "bad"}">${c.admissible ? "admissible" : "excluded"}</span></td>
+      </tr>`).join("");
+  el("frontier-note").innerHTML =
+    `<b>${esc(f.recommendation || "none")}</b> — ${esc(f.recommendation_note)}<br>`
+    + Object.entries(f.inadmissible).map(([k, v]) => `${esc(k)}: ${esc(v[0])}`).join("<br>");
+})();
+
+(function () {
+  const na = D.no_action;
+  el("noaction").innerHTML =
+    "<tr><th>Dimension</th><th class='n'>Now</th><th class='n'>Projected</th><th class='n'>Limit</th><th class='n'></th></tr>"
+    + na.dimensions.map(d => {
+      const state = d.breach_expected ? ["bad", "breach expected"]
+        : d.breach_possible ? ["warn", "breach possible"] : ["ok", "within limit"];
+      return `<tr><td>${esc(d.name)}</td>
+        <td class="n num">${fmt(d.current, 1)}</td>
+        <td class="n num">${fmt(d.projected, 1)} <span class="dim">(${fmt(d.change_pct, 1)}%)</span></td>
+        <td class="n num dim">${d.limit ? fmt(d.limit, 0) : "—"}</td>
+        <td class="n"><span class="chip ${state[0]}">${state[1]}</span></td></tr>`;
+    }).join("");
+  el("noaction-verdict").textContent = `${na.verdict}. Thermal: ${na.thermal_state}.`;
+})();
+
+/* ---------- security ---------- */
+(function () {
+  const gate = D.security_gate.proposals;
+  el("gate").innerHTML = gate.length ? gate.map(g => `<article class="item">
+      <h3>${esc(g.recommendation)}</h3>
+      <div class="meta">
+        <span>energy <b class="num ${g.energy_wh < 0 ? "save" : ""}">${fmt(g.energy_wh, 3)} Wh</b></span>
+        <span>security <b>${esc(g.security)}</b></span>
+        <span>outcome <b>${esc(g.state.replace(/_/g, " "))}</b></span>
+      </div>
+      <ul>${g.evidence.map(e => `<li>${esc(e)}</li>`).join("")}</ul>
+    </article>`).join("")
+    : `<p class="dim">No proposals in this window.</p>`;
+
+  const audit = D.audit;
+  tiles(el("security-tiles"), [
+    { k: "Audit chain", v: audit.chain_valid ? "valid" : "BROKEN",
+      f: `${audit.entries} entries · policy ${audit.policy_version}`,
+      color: audit.chain_valid ? css("--measured") : css("--alert") },
+    { k: "Blocked proposals", v: String(gate.filter(g => g.state.includes("block")).length),
+      f: "policy decides admissibility, not energy" },
+    { k: "Forged telemetry", v: D.ingest.forged_record_accepted ? "ACCEPTED" : "rejected",
+      f: esc(D.ingest.forged_record_reason),
+      color: D.ingest.forged_record_accepted ? css("--alert") : css("--measured") },
+    { k: "Tenant isolation", v: "enforced", f: "cross-tenant reads denied by policy" },
+  ]);
+})();
+
+(function () {
+  const a = D.anomalies, rca = a.root_cause;
+  el("rca-statement").innerHTML = `<b>${esc(rca.statement)}</b>
+    <br><span class="dim" style="font-size:.78rem">${esc(rca.method)}</span>`;
+  el("detections").innerHTML =
+    "<tr><th>Metric</th><th class='n'>Observed</th><th class='n'>Baseline</th><th class='n'>Robust z</th><th>Method</th><th class='n'></th></tr>"
+    + a.detections.detections.map(d => `<tr>
+        <td>${esc(d.metric.replace(/_/g, " "))}</td>
+        <td class="n num">${fmt(d.observed, 4)}</td>
+        <td class="n num dim">${fmt(d.baseline, 4)}</td>
+        <td class="n num">${fmt(d.score, 1)}</td>
+        <td class="dim" style="font-size:.76rem">${esc(d.method.estimator)}</td>
+        <td class="n"><span class="chip ${d.severity === "page" ? "bad" : d.severity === "watch" ? "warn" : ""}">${esc(d.severity)}</span></td>
+      </tr>`).join("");
+
+  if (rca.primary_cause) {
+    el("anomaly-slot").innerHTML = `<div class="card alert" style="margin-top:12px">
+      <h2>Energy anomaly — ${esc(a.comparison_window)}</h2>
+      <p class="soft" style="font-size:.84rem;margin:6px 0 0">${esc(rca.statement)}</p>
+      <ol>${[rca.primary_cause].concat(rca.contributing_factors).map(c =>
+        `<li><b>${esc(c.cause.replace(/_/g, " "))}</b> (${fmt(c.confidence, 2)}) — validate with
+         ${esc(c.validation_required)}</li>`).join("")}</ol>
+    </div>`;
+  }
+})();
+
+/* ---------- forecast ---------- */
+(function () {
+  const fc = D.forecast.energy;
+  const host = el("chart-forecast");
+  if (!fc.points.length) { host.innerHTML = `<p class="dim">${esc(fc.warning || "no forecast")}</p>`; return; }
+  const W = 720, H = 220, L = 52, R = 10, T = 12, B = 24;
+  const g = svg(W, H, "Facility power forecast with prediction interval");
+  const hist = series.power.map(p => ({ t: p.t, v: p.gpu + p.host + p.cooling }));
+  const step = fc.step_s;
+  const lastT = hist.length ? hist[hist.length - 1].t : 0;
+  const pts = fc.points.map(p => ({ t: lastT + p.horizon_steps * step, ...p }));
+  const all = hist.map(h => h.v).concat(pts.map(p => p.upper), pts.map(p => p.lower));
+  const minY = Math.min(...all) * .94, maxY = Math.max(...all) * 1.06;
+  const tEnd = pts[pts.length - 1].t;
+  const x = t => L + (W - L - R) * ((t - hist[0].t) / (tEnd - hist[0].t));
+  const y = v => H - B - (H - B - T) * ((v - minY) / (maxY - minY));
+  [minY, (minY + maxY) / 2, maxY].forEach(v => {
+    g.appendChild(node("line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: css("--grid") }));
+    g.appendChild(node("text", { x: L - 8, y: y(v) + 4, "text-anchor": "end", fill: css("--ink-dim"),
+      "font-size": 10.5, "font-family": "IBM Plex Mono, monospace" }, (v / 1000).toFixed(2) + " kW"));
+  });
+  g.appendChild(node("polygon", {
+    points: pts.map(p => `${x(p.t).toFixed(1)},${y(p.upper).toFixed(1)}`).join(" ") + " "
+      + pts.slice().reverse().map(p => `${x(p.t).toFixed(1)},${y(p.lower).toFixed(1)}`).join(" "),
+    fill: css("--simulated"), "fill-opacity": .18 }));
+  g.appendChild(node("polyline", {
+    points: hist.map(h => `${x(h.t).toFixed(1)},${y(h.v).toFixed(1)}`).join(" "),
+    fill: "none", stroke: css("--derived"), "stroke-width": 1.8 }));
+  g.appendChild(node("polyline", {
+    points: [`${x(lastT).toFixed(1)},${y(hist[hist.length - 1].v).toFixed(1)}`]
+      .concat(pts.map(p => `${x(p.t).toFixed(1)},${y(p.value).toFixed(1)}`)).join(" "),
+    fill: "none", stroke: css("--simulated"), "stroke-width": 2, "stroke-dasharray": "5 4" }));
+  g.appendChild(node("line", { x1: x(lastT), x2: x(lastT), y1: T, y2: H - B,
+    stroke: css("--ink-dim"), "stroke-dasharray": "2 3" }));
+  g.appendChild(node("text", { x: x(lastT), y: H - 6, "text-anchor": "middle", fill: css("--ink-dim"),
+    "font-size": 10.5, "font-family": "IBM Plex Mono, monospace" }, "now"));
+  host.appendChild(g);
+
+  el("breach").innerHTML = D.forecast.breach_probabilities.length
+    ? D.forecast.breach_probabilities.map(b => `<div class="item">
+        <h3>${esc(b.dimension)} budget</h3>
+        <div class="meta"><span><b class="num">${(b.probability * 100).toFixed(0)}%</b> chance of
+          exceeding <b class="num">${fmt(b.limit, 0)}</b> within ${fmt(b.horizon_s / 60, 0)} min</span>
+          <span class="chip ${b.probability > .5 ? "bad" : b.probability > .1 ? "warn" : "ok"}">${esc(b.severity)}</span></div>
+        <ul><li>${esc(b.method)}</li></ul></div>`).join("")
+    : `<p class="dim">No budget limits configured for forecasting.</p>`;
+
+  const targets = [["energy", "facility power (W)"], ["tokens", "tokens/s"],
+                   ["gpu_demand", "GPU demand"], ["cooling_load", "cooling power (W)"]];
+  el("forecast-table").innerHTML =
+    "<tr><th>Target</th><th class='n'>Horizon</th><th class='n'>80% interval</th></tr>"
+    + targets.map(([k, label]) => {
+      const f = D.forecast[k];
+      if (!f.points.length) return `<tr><td>${label}</td><td colspan="2" class="dim">${esc(f.warning || "unavailable")}</td></tr>`;
+      const p = f.points[f.points.length - 1];
+      return `<tr><td>${label}</td><td class="n num">${fmt(p.value, 1)}</td>
+        <td class="n num dim">${fmt(p.lower, 1)}–${fmt(p.upper, 1)}</td></tr>`;
+    }).join("");
+})();
+
+/* ---------- footer ---------- */
+(function () {
+  const prov = D.provenance;
+  el("foot").innerHTML = `
+    <p><b>${esc(prov.declaration)}</b></p>
+    <p>Weakest provenance across attributed components: <b>${esc(prov.weakest)}</b> ·
+       measured ${(prov.measured_fraction * 100).toFixed(0)}% ·
+       calibrated ${(prov.calibrated_fraction * 100).toFixed(0)}% ·
+       benchmark ${esc(D.benchmark.status)} · experiments ${esc(D.experiments.status)}</p>
+    <p>Reproduce this page: <code>${esc(run.reproduction_command)} &amp;&amp; python watts.py dashboard</code></p>`;
+})();
+</script>
+</body>
+</html>
