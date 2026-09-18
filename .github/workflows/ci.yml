@@ -1,65 +1,100 @@
 name: ci
 
 on:
-  push: { branches: [main] }
+  push:
+    branches: [main]
   pull_request:
 
 jobs:
   test:
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
         python-version: ["3.10", "3.12"]
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
-        with: { python-version: "${{ matrix.python-version }}" }
+        with:
+          python-version: "${{ matrix.python-version }}"
+
       - name: Syntax check
         run: make lint
+
       - name: Tests
         run: make test
+
       - name: Reproducibility - the demo must generate a report end to end
         run: python watts.py demo --duration 120 --rps 1.5 --seed 42
+
       - name: Reproducibility - the same seed must produce the same numbers
         run: |
           python - <<'PY'
           from services.reporting import PipelineConfig, run_pipeline
+
           cfg = PipelineConfig(seed=42, duration_s=90.0, rps=1.2, gpus=2)
-          a, b = run_pipeline(cfg).as_dict(), run_pipeline(cfg).as_dict()
+
+          a = run_pipeline(cfg).as_dict()
+          b = run_pipeline(cfg).as_dict()
+
           assert a["energy"] == b["energy"], "same seed produced different energy"
           assert a["observation"]["total_tokens"] == b["observation"]["total_tokens"]
+
           print("deterministic")
           PY
+
       - name: Parity vectors describe the reference implementation
-        run: python -m unittest tests.test_java_parity -v
+        run: PYTHONPATH=.:tests python -m unittest tests.test_java_parity -v
+
       - name: V2 acceptance criteria
         run: python tools/acceptance.py
+
       - name: Reproducibility - experiments must produce results
         run: |
           python experiments/exp03_dynamic_batching.py > /dev/null
           python experiments/exp08_security_constrained_optimization.py > /dev/null
           python experiments/exp09_prefill_vs_decode.py > /dev/null
+
           test -f experiments/results/exp03_dynamic_batching.json
+
           python - <<'PY'
-          import json, pathlib
+          import json
+          import pathlib
+
           for name in ("exp03_dynamic_batching", "exp09_prefill_vs_decode"):
-              data = json.loads(pathlib.Path(f"experiments/results/{name}.json").read_text())
-              assert data["manifest"]["seed"] is not None, f"{name} has no seed in its manifest"
+              data = json.loads(
+                  pathlib.Path(f"experiments/results/{name}.json").read_text()
+              )
+
+              assert data["manifest"]["seed"] is not None, (
+                  f"{name} has no seed in its manifest"
+              )
+
               assert data["provenance"], f"{name} has no provenance"
+
           print("manifests present")
           PY
 
   policy:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: open-policy-agent/setup-opa@v2
-        with: { version: latest }
+        with:
+          version: latest
+
       - name: Policies load and are formatted
         run: |
           opa fmt --list policies/
           opa eval -d policies/ 'data.watts' --format pretty > /dev/null
+
       - uses: actions/setup-python@v5
-        with: { python-version: "3.12" }
+        with:
+          python-version: "3.12"
+
       - name: Rego and Python policy sets agree
         run: PYTHONPATH=.:tests python -m unittest tests.test_policy_parity -v
