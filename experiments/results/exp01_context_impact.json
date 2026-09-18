@@ -1,0 +1,121 @@
+{
+  "experiment": "exp01_context_impact",
+  "manifest": {
+    "experiment_id": "exp01_context_impact",
+    "version": "1.0",
+    "schema_version": "2",
+    "seed": 11,
+    "configuration": {
+      "model": "watts-sim-medium",
+      "output_tokens": 200,
+      "rps": 0.8,
+      "duration_s": 240,
+      "max_batch": 8,
+      "context_sizes": [
+        500,
+        1000,
+        2000,
+        4000,
+        8000,
+        16000
+      ]
+    },
+    "inputs": {
+      "rows": 6
+    },
+    "method": "single-factor sweep on the WATTS digital twin, repeated across seeds",
+    "metrics": [
+      "input_tokens",
+      "wh_per_request",
+      "wh_per_1k_tokens",
+      "p95_latency_ms",
+      "energy_vs_smallest_pct",
+      "seed_spread_wh_per_request"
+    ],
+    "outputs": [
+      "experiments/results/exp01_context_impact.json",
+      "experiments/results/exp01_context_impact.md"
+    ],
+    "provenance": "simulated",
+    "reproduce": "make experiment EXP=exp01_context_impact"
+  },
+  "title": "Experiment 01 - Context size and energy",
+  "research_question": "How does the size of the context influence consumption?",
+  "provenance": "simulated",
+  "disclaimer": "Produced by the WATTS digital twin. Valid as a statement about the model under the stated configuration, not as a hardware measurement.",
+  "generated_at": "2026-09-18T10:14:58Z",
+  "environment": {
+    "python": "3.12.3",
+    "platform": "Linux-6.18.44-fc-v36-x86_64-with-glibc2.39"
+  },
+  "config": {
+    "model": "watts-sim-medium",
+    "output_tokens": 200,
+    "rps": 0.8,
+    "duration_s": 240,
+    "max_batch": 8,
+    "context_sizes": [
+      500,
+      1000,
+      2000,
+      4000,
+      8000,
+      16000
+    ]
+  },
+  "rows": [
+    {
+      "input_tokens": 500,
+      "wh_per_request": 0.03677009629020744,
+      "wh_per_1k_tokens": 0.05252065318339185,
+      "p95_latency_ms": 991.8795336670532,
+      "energy_vs_smallest_pct": 0.0,
+      "seed_spread_wh_per_request": 0.00010574965522320429
+    },
+    {
+      "input_tokens": 1000,
+      "wh_per_request": 0.04476001060102173,
+      "wh_per_1k_tokens": 0.03726355443553011,
+      "p95_latency_ms": 1171.2060880888414,
+      "energy_vs_smallest_pct": 21.7293809832697,
+      "seed_spread_wh_per_request": 0.00017237458653570487
+    },
+    {
+      "input_tokens": 2000,
+      "wh_per_request": 0.0607393398038934,
+      "wh_per_1k_tokens": 0.027567700641077914,
+      "p95_latency_ms": 1537.9327094337732,
+      "energy_vs_smallest_pct": 65.18678472993126,
+      "seed_spread_wh_per_request": 0.00030705192456086106
+    },
+    {
+      "input_tokens": 4000,
+      "wh_per_request": 0.09269787841812825,
+      "wh_per_1k_tokens": 0.022031641452613954,
+      "p95_latency_ms": 2521.447001735797,
+      "energy_vs_smallest_pct": 152.10126643811762,
+      "seed_spread_wh_per_request": 0.0005756870205834291
+    },
+    {
+      "input_tokens": 8000,
+      "wh_per_request": 0.15555941924459102,
+      "wh_per_1k_tokens": 0.018934324190590632,
+      "p95_latency_ms": 6037.399024293271,
+      "energy_vs_smallest_pct": 323.0595917313912,
+      "seed_spread_wh_per_request": 0.003518011562246015
+    },
+    {
+      "input_tokens": 16000,
+      "wh_per_request": 0.24822685103607287,
+      "wh_per_1k_tokens": 0.015292658266122612,
+      "p95_latency_ms": 17400.87845664936,
+      "energy_vs_smallest_pct": 575.078055485485,
+      "seed_spread_wh_per_request": 0.010263814484656048
+    }
+  ],
+  "findings": [
+    "Input grew 32x; energy per request grew 6.8x, so prefill cost is close to linear in context length while the fixed per-request cost dilutes.",
+    "Energy per 1k tokens fell from 0.0525 to 0.0153 Wh: long contexts are cheaper *per token* and more expensive *per request*. Reporting only Wh/token hides the cost of context growth.",
+    "Calibration: the slope of Wh/request against input tokens is the prefill coefficient for a model profile. Run this against metered hardware before quoting absolute energy."
+  ]
+}

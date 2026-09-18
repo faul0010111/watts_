@@ -1,0 +1,112 @@
+{
+  "experiment": "exp02_output_limit",
+  "manifest": {
+    "experiment_id": "exp02_output_limit",
+    "version": "1.0",
+    "schema_version": "2",
+    "seed": 11,
+    "configuration": {
+      "model": "watts-sim-medium",
+      "input_tokens": 2000,
+      "rps": 0.8,
+      "duration_s": 240,
+      "output_sizes": [
+        32,
+        64,
+        128,
+        256,
+        512,
+        1024
+      ]
+    },
+    "inputs": {
+      "rows": 6
+    },
+    "method": "single-factor sweep on the WATTS digital twin, repeated across seeds",
+    "metrics": [
+      "output_tokens",
+      "wh_per_request",
+      "wh_per_1k_tokens",
+      "p95_latency_ms",
+      "energy_vs_shortest_pct"
+    ],
+    "outputs": [
+      "experiments/results/exp02_output_limit.json",
+      "experiments/results/exp02_output_limit.md"
+    ],
+    "provenance": "simulated",
+    "reproduce": "make experiment EXP=exp02_output_limit"
+  },
+  "title": "Experiment 02 - Output token limits",
+  "research_question": "What does an output token cost relative to an input token?",
+  "provenance": "simulated",
+  "disclaimer": "Produced by the WATTS digital twin. Valid as a statement about the model under the stated configuration, not as a hardware measurement.",
+  "generated_at": "2026-09-18T10:14:59Z",
+  "environment": {
+    "python": "3.12.3",
+    "platform": "Linux-6.18.44-fc-v36-x86_64-with-glibc2.39"
+  },
+  "config": {
+    "model": "watts-sim-medium",
+    "input_tokens": 2000,
+    "rps": 0.8,
+    "duration_s": 240,
+    "output_sizes": [
+      32,
+      64,
+      128,
+      256,
+      512,
+      1024
+    ]
+  },
+  "rows": [
+    {
+      "output_tokens": 32,
+      "wh_per_request": 0.036497970867468525,
+      "wh_per_1k_tokens": 0.01793280329655476,
+      "p95_latency_ms": 987.2525317889931,
+      "energy_vs_shortest_pct": 0.0
+    },
+    {
+      "output_tokens": 64,
+      "wh_per_request": 0.04111688650118089,
+      "wh_per_1k_tokens": 0.019889412968527004,
+      "p95_latency_ms": 1089.8489508116857,
+      "energy_vs_shortest_pct": 12.655266920138036
+    },
+    {
+      "output_tokens": 128,
+      "wh_per_request": 0.050352808197025416,
+      "wh_per_1k_tokens": 0.02362552205039437,
+      "p95_latency_ms": 1299.416225892374,
+      "energy_vs_shortest_pct": 37.96056876659416
+    },
+    {
+      "output_tokens": 256,
+      "wh_per_request": 0.06882175901826972,
+      "wh_per_1k_tokens": 0.030461533666632252,
+      "p95_latency_ms": 1729.333336059567,
+      "energy_vs_shortest_pct": 88.56324716838469
+    },
+    {
+      "output_tokens": 512,
+      "wh_per_request": 0.10576674225007603,
+      "wh_per_1k_tokens": 0.04204801588569071,
+      "p95_latency_ms": 3111.4887315520427,
+      "energy_vs_shortest_pct": 189.78800666518242
+    },
+    {
+      "output_tokens": 1024,
+      "wh_per_request": 0.17774714338960496,
+      "wh_per_1k_tokens": 0.05871139980353927,
+      "p95_latency_ms": 7357.031192716001,
+      "energy_vs_shortest_pct": 387.0055489798065
+    }
+  ],
+  "findings": [
+    "Each additional output token costs about 0.1424 mWh in this configuration, against a 2,000-token input held constant.",
+    "Going from 32 to 1024 output tokens raised energy per request by 387% and p95 latency by 645%.",
+    "An output cap is the cheapest energy lever available, but it is the one most likely to cut an answer short: validate quality on a held-out set per task class before applying it."
+  ]
+}

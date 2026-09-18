@@ -1,0 +1,454 @@
+{
+  "experiment": "exp07_energy_aware_scheduling",
+  "manifest": {
+    "experiment_id": "exp07_energy_aware_scheduling",
+    "version": "1.0",
+    "schema_version": "2",
+    "seed": 11,
+    "configuration": {
+      "price_curve": [
+        0.11,
+        0.1,
+        0.09,
+        0.09,
+        0.1,
+        0.13,
+        0.18,
+        0.22,
+        0.21,
+        0.17,
+        0.15,
+        0.14,
+        0.13,
+        0.12,
+        0.12,
+        0.14,
+        0.19,
+        0.26,
+        0.28,
+        0.24,
+        0.19,
+        0.16,
+        0.14,
+        0.12
+      ],
+      "carbon_curve": [
+        210,
+        190,
+        180,
+        175,
+        180,
+        230,
+        310,
+        380,
+        350,
+        280,
+        220,
+        170,
+        140,
+        120,
+        125,
+        160,
+        260,
+        400,
+        430,
+        390,
+        330,
+        290,
+        250,
+        230
+      ],
+      "jobs": [
+        "prod-inference",
+        "fraud-scoring",
+        "nightly-finetune",
+        "corpus-embedding",
+        "etl-backfill"
+      ],
+      "placements": {
+        "fifo": [
+          {
+            "job_id": "prod-inference",
+            "start_s": 0,
+            "deferred_s": 0.0,
+            "reason": "critical inference: placed at the earliest free slot",
+            "expected_cost": 1.32,
+            "expected_carbon_g": 2520.0
+          },
+          {
+            "job_id": "fraud-scoring",
+            "start_s": 0,
+            "deferred_s": 0.0,
+            "reason": "critical inference: placed at the earliest free slot",
+            "expected_cost": 0.66,
+            "expected_carbon_g": 1260.0
+          },
+          {
+            "job_id": "etl-backfill",
+            "start_s": 0,
+            "deferred_s": 0.0,
+            "reason": "flexible job, but the current slot was already the cheapest feasible one",
+            "expected_cost": 2.75,
+            "expected_carbon_g": 5250.0
+          },
+          {
+            "job_id": "corpus-embedding",
+            "start_s": 3600,
+            "deferred_s": 3600.0,
+            "reason": "flexible job deferred 1.0 h to a cheaper slot, deadline respected",
+            "expected_cost": 6.0,
+            "expected_carbon_g": 11400.0
+          },
+          {
+            "job_id": "nightly-finetune",
+            "start_s": 3600,
+            "deferred_s": 3600.0,
+            "reason": "flexible job deferred 1.0 h to a cheaper slot, deadline respected",
+            "expected_cost": 18.0,
+            "expected_carbon_g": 34200.0
+          }
+        ],
+        "price_aware": [
+          {
+            "job_id": "prod-inference",
+            "start_s": 0,
+            "deferred_s": 0.0,
+            "reason": "critical inference: placed at the earliest free slot",
+            "expected_cost": 1.32,
+            "expected_carbon_g": 2520.0
+          },
+          {
+            "job_id": "fraud-scoring",
+            "start_s": 0,
+            "deferred_s": 0.0,
+            "reason": "critical inference: placed at the earliest free slot",
+            "expected_cost": 0.66,
+            "expected_carbon_g": 1260.0
+          },
+          {
+            "job_id": "etl-backfill",
+            "start_s": 7200,
+            "deferred_s": 7200.0,
+            "reason": "flexible job deferred 2.0 h to a cheaper slot, deadline respected",
+            "expected_cost": 2.25,
+            "expected_carbon_g": 4500.0
+          },
+          {
+            "job_id": "corpus-embedding",
+            "start_s": 7200,
+            "deferred_s": 7200.0,
+            "reason": "flexible job deferred 2.0 h to a cheaper slot, deadline respected",
+            "expected_cost": 5.3999999999999995,
+            "expected_carbon_g": 10800.0
+          },
+          {
+            "job_id": "nightly-finetune",
+            "start_s": 7200,
+            "deferred_s": 7200.0,
+            "reason": "flexible job deferred 2.0 h to a cheaper slot, deadline respected",
+            "expected_cost": 16.2,
+            "expected_carbon_g": 32400.0
+          }
+        ],
+        "price_and_carbon": [
+          {
+            "job_id": "prod-inference",
+            "start_s": 0,
+            "deferred_s": 0.0,
+            "reason": "critical inference: placed at the earliest free slot",
+            "expected_cost": 1.32,
+            "expected_carbon_g": 2520.0
+          },
+          {
+            "job_id": "fraud-scoring",
+            "start_s": 0,
+            "deferred_s": 0.0,
+            "reason": "critical inference: placed at the earliest free slot",
+            "expected_cost": 0.66,
+            "expected_carbon_g": 1260.0
+          },
+          {
+            "job_id": "etl-backfill",
+            "start_s": 46800,
+            "deferred_s": 46800.0,
+            "reason": "flexible job deferred 13.0 h to a cheaper slot, deadline respected",
+            "expected_cost": 3.0,
+            "expected_carbon_g": 3000.0
+          },
+          {
+            "job_id": "corpus-embedding",
+            "start_s": 46800,
+            "deferred_s": 46800.0,
+            "reason": "flexible job deferred 13.0 h to a cheaper slot, deadline respected",
+            "expected_cost": 7.199999999999999,
+            "expected_carbon_g": 7200.0
+          },
+          {
+            "job_id": "nightly-finetune",
+            "start_s": 46800,
+            "deferred_s": 46800.0,
+            "reason": "flexible job deferred 13.0 h to a cheaper slot, deadline respected",
+            "expected_cost": 21.599999999999998,
+            "expected_carbon_g": 21600.0
+          }
+        ]
+      }
+    },
+    "inputs": {
+      "rows": 3
+    },
+    "method": "single-factor sweep on the WATTS digital twin, repeated across seeds",
+    "metrics": [
+      "policy",
+      "total_cost",
+      "total_carbon_kg",
+      "cost_vs_fifo_pct",
+      "carbon_vs_fifo_pct",
+      "max_defer_h",
+      "critical_delay_s",
+      "unplaced"
+    ],
+    "outputs": [
+      "experiments/results/exp07_energy_aware_scheduling.json",
+      "experiments/results/exp07_energy_aware_scheduling.md"
+    ],
+    "provenance": "simulated",
+    "reproduce": "make experiment EXP=exp07_energy_aware_scheduling"
+  },
+  "title": "Experiment 07 - Energy-aware scheduling",
+  "research_question": "Can deferring flexible workloads reduce cost and carbon without delaying critical work?",
+  "provenance": "simulated",
+  "disclaimer": "Produced by the WATTS digital twin. Valid as a statement about the model under the stated configuration, not as a hardware measurement.",
+  "generated_at": "2026-09-18T10:15:07Z",
+  "environment": {
+    "python": "3.12.3",
+    "platform": "Linux-6.18.44-fc-v36-x86_64-with-glibc2.39"
+  },
+  "config": {
+    "price_curve": [
+      0.11,
+      0.1,
+      0.09,
+      0.09,
+      0.1,
+      0.13,
+      0.18,
+      0.22,
+      0.21,
+      0.17,
+      0.15,
+      0.14,
+      0.13,
+      0.12,
+      0.12,
+      0.14,
+      0.19,
+      0.26,
+      0.28,
+      0.24,
+      0.19,
+      0.16,
+      0.14,
+      0.12
+    ],
+    "carbon_curve": [
+      210,
+      190,
+      180,
+      175,
+      180,
+      230,
+      310,
+      380,
+      350,
+      280,
+      220,
+      170,
+      140,
+      120,
+      125,
+      160,
+      260,
+      400,
+      430,
+      390,
+      330,
+      290,
+      250,
+      230
+    ],
+    "jobs": [
+      "prod-inference",
+      "fraud-scoring",
+      "nightly-finetune",
+      "corpus-embedding",
+      "etl-backfill"
+    ],
+    "placements": {
+      "fifo": [
+        {
+          "job_id": "prod-inference",
+          "start_s": 0,
+          "deferred_s": 0.0,
+          "reason": "critical inference: placed at the earliest free slot",
+          "expected_cost": 1.32,
+          "expected_carbon_g": 2520.0
+        },
+        {
+          "job_id": "fraud-scoring",
+          "start_s": 0,
+          "deferred_s": 0.0,
+          "reason": "critical inference: placed at the earliest free slot",
+          "expected_cost": 0.66,
+          "expected_carbon_g": 1260.0
+        },
+        {
+          "job_id": "etl-backfill",
+          "start_s": 0,
+          "deferred_s": 0.0,
+          "reason": "flexible job, but the current slot was already the cheapest feasible one",
+          "expected_cost": 2.75,
+          "expected_carbon_g": 5250.0
+        },
+        {
+          "job_id": "corpus-embedding",
+          "start_s": 3600,
+          "deferred_s": 3600.0,
+          "reason": "flexible job deferred 1.0 h to a cheaper slot, deadline respected",
+          "expected_cost": 6.0,
+          "expected_carbon_g": 11400.0
+        },
+        {
+          "job_id": "nightly-finetune",
+          "start_s": 3600,
+          "deferred_s": 3600.0,
+          "reason": "flexible job deferred 1.0 h to a cheaper slot, deadline respected",
+          "expected_cost": 18.0,
+          "expected_carbon_g": 34200.0
+        }
+      ],
+      "price_aware": [
+        {
+          "job_id": "prod-inference",
+          "start_s": 0,
+          "deferred_s": 0.0,
+          "reason": "critical inference: placed at the earliest free slot",
+          "expected_cost": 1.32,
+          "expected_carbon_g": 2520.0
+        },
+        {
+          "job_id": "fraud-scoring",
+          "start_s": 0,
+          "deferred_s": 0.0,
+          "reason": "critical inference: placed at the earliest free slot",
+          "expected_cost": 0.66,
+          "expected_carbon_g": 1260.0
+        },
+        {
+          "job_id": "etl-backfill",
+          "start_s": 7200,
+          "deferred_s": 7200.0,
+          "reason": "flexible job deferred 2.0 h to a cheaper slot, deadline respected",
+          "expected_cost": 2.25,
+          "expected_carbon_g": 4500.0
+        },
+        {
+          "job_id": "corpus-embedding",
+          "start_s": 7200,
+          "deferred_s": 7200.0,
+          "reason": "flexible job deferred 2.0 h to a cheaper slot, deadline respected",
+          "expected_cost": 5.3999999999999995,
+          "expected_carbon_g": 10800.0
+        },
+        {
+          "job_id": "nightly-finetune",
+          "start_s": 7200,
+          "deferred_s": 7200.0,
+          "reason": "flexible job deferred 2.0 h to a cheaper slot, deadline respected",
+          "expected_cost": 16.2,
+          "expected_carbon_g": 32400.0
+        }
+      ],
+      "price_and_carbon": [
+        {
+          "job_id": "prod-inference",
+          "start_s": 0,
+          "deferred_s": 0.0,
+          "reason": "critical inference: placed at the earliest free slot",
+          "expected_cost": 1.32,
+          "expected_carbon_g": 2520.0
+        },
+        {
+          "job_id": "fraud-scoring",
+          "start_s": 0,
+          "deferred_s": 0.0,
+          "reason": "critical inference: placed at the earliest free slot",
+          "expected_cost": 0.66,
+          "expected_carbon_g": 1260.0
+        },
+        {
+          "job_id": "etl-backfill",
+          "start_s": 46800,
+          "deferred_s": 46800.0,
+          "reason": "flexible job deferred 13.0 h to a cheaper slot, deadline respected",
+          "expected_cost": 3.0,
+          "expected_carbon_g": 3000.0
+        },
+        {
+          "job_id": "corpus-embedding",
+          "start_s": 46800,
+          "deferred_s": 46800.0,
+          "reason": "flexible job deferred 13.0 h to a cheaper slot, deadline respected",
+          "expected_cost": 7.199999999999999,
+          "expected_carbon_g": 7200.0
+        },
+        {
+          "job_id": "nightly-finetune",
+          "start_s": 46800,
+          "deferred_s": 46800.0,
+          "reason": "flexible job deferred 13.0 h to a cheaper slot, deadline respected",
+          "expected_cost": 21.599999999999998,
+          "expected_carbon_g": 21600.0
+        }
+      ]
+    }
+  },
+  "rows": [
+    {
+      "policy": "fifo",
+      "total_cost": 28.73,
+      "total_carbon_kg": 54.63,
+      "cost_vs_fifo_pct": 0.0,
+      "carbon_vs_fifo_pct": 0.0,
+      "max_defer_h": 1.0,
+      "critical_delay_s": 0.0,
+      "unplaced": 0
+    },
+    {
+      "policy": "price_aware",
+      "total_cost": 25.83,
+      "total_carbon_kg": 51.48,
+      "cost_vs_fifo_pct": -10.093978419770282,
+      "carbon_vs_fifo_pct": -5.766062602965404,
+      "max_defer_h": 2.0,
+      "critical_delay_s": 0.0,
+      "unplaced": 0
+    },
+    {
+      "policy": "price_and_carbon",
+      "total_cost": 33.779999999999994,
+      "total_carbon_kg": 35.58,
+      "cost_vs_fifo_pct": 17.57744517925511,
+      "carbon_vs_fifo_pct": -34.87095002745744,
+      "max_defer_h": 13.0,
+      "critical_delay_s": 0.0,
+      "unplaced": 0
+    }
+  ],
+  "findings": [
+    "Critical inference started immediately under every policy (maximum delay 0 s). This is the invariant the scheduler exists to preserve.",
+    "Price-aware deferral moved flexible work by up to 2 h and changed energy cost by -10.1% and carbon by -5.8% against FIFO.",
+    "Adding carbon to the objective changed cost by +17.6% and carbon by -34.9%: the cheapest hour and the cleanest hour are not the same hour, so the weighting is a policy decision, not a technical one.",
+    "Price and carbon curves here are illustrative inputs. Connect your market feed and grid intensity source before drawing conclusions about your own site."
+  ]
+}

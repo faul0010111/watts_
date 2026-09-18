@@ -1,0 +1,125 @@
+{
+  "experiment": "exp05_gpu_utilization",
+  "manifest": {
+    "experiment_id": "exp05_gpu_utilization",
+    "version": "1.0",
+    "schema_version": "2",
+    "seed": 11,
+    "configuration": {
+      "duration_s": 360,
+      "gpus": 4,
+      "model": "watts-sim-medium",
+      "rates": [
+        0.25,
+        0.5,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ]
+    },
+    "inputs": {
+      "rows": 6
+    },
+    "method": "single-factor sweep on the WATTS digital twin, repeated across seeds",
+    "metrics": [
+      "rps",
+      "tokens_per_s",
+      "mean_batch_size",
+      "wh_per_1k_tokens",
+      "facility_energy_wh",
+      "pue",
+      "p95_latency_ms"
+    ],
+    "outputs": [
+      "experiments/results/exp05_gpu_utilization.json",
+      "experiments/results/exp05_gpu_utilization.md"
+    ],
+    "provenance": "simulated",
+    "reproduce": "make experiment EXP=exp05_gpu_utilization"
+  },
+  "title": "Experiment 05 - GPU utilisation and energy per token",
+  "research_question": "How does utilisation change the energy cost of a token?",
+  "provenance": "simulated",
+  "disclaimer": "Produced by the WATTS digital twin. Valid as a statement about the model under the stated configuration, not as a hardware measurement.",
+  "generated_at": "2026-09-18T10:15:04Z",
+  "environment": {
+    "python": "3.12.3",
+    "platform": "Linux-6.18.44-fc-v36-x86_64-with-glibc2.39"
+  },
+  "config": {
+    "duration_s": 360,
+    "gpus": 4,
+    "model": "watts-sim-medium",
+    "rates": [
+      0.25,
+      0.5,
+      1.0,
+      2.0,
+      3.0,
+      4.0
+    ]
+  },
+  "rows": [
+    {
+      "rps": 0.25,
+      "tokens_per_s": 626.6060907391688,
+      "mean_batch_size": 1.0,
+      "wh_per_1k_tokens": 0.025689718392849652,
+      "facility_energy_wh": 78.83438652358696,
+      "pue": 1.4944492510315772,
+      "p95_latency_ms": 3244.2923330298904
+    },
+    {
+      "rps": 0.5,
+      "tokens_per_s": 1159.1807571786621,
+      "mean_batch_size": 1.0,
+      "wh_per_1k_tokens": 0.025894275698236324,
+      "facility_energy_wh": 83.17291614712066,
+      "pue": 1.4802231177763296,
+      "p95_latency_ms": 3358.3874896393936
+    },
+    {
+      "rps": 1.0,
+      "tokens_per_s": 2389.6451703639,
+      "mean_batch_size": 1.0,
+      "wh_per_1k_tokens": 0.026662397777114193,
+      "facility_energy_wh": 94.00796684977497,
+      "pue": 1.452554314539524,
+      "p95_latency_ms": 3683.260916622888
+    },
+    {
+      "rps": 2.0,
+      "tokens_per_s": 4973.131712589326,
+      "mean_batch_size": 1.2653681546115398,
+      "wh_per_1k_tokens": 0.02560353031978381,
+      "facility_energy_wh": 114.95318120904604,
+      "pue": 1.4173455508825865,
+      "p95_latency_ms": 4875.466654747324
+    },
+    {
+      "rps": 3.0,
+      "tokens_per_s": 7355.457245426784,
+      "mean_batch_size": 1.9755318243514328,
+      "wh_per_1k_tokens": 0.022693383327809968,
+      "facility_energy_wh": 129.22393419432333,
+      "pue": 1.4021093911613818,
+      "p95_latency_ms": 6262.945870901359
+    },
+    {
+      "rps": 4.0,
+      "tokens_per_s": 9857.217114738458,
+      "mean_batch_size": 3.146769271510976,
+      "wh_per_1k_tokens": 0.01958547574675133,
+      "facility_energy_wh": 139.66349812687432,
+      "pue": 1.3931668077623895,
+      "p95_latency_ms": 7607.064790047015
+    }
+  ],
+  "findings": [
+    "Energy per token fell from 0.02569 Wh/1k at 0.25 rps to 0.01959 Wh/1k at 4.0 rps: the same idle power spread over more work.",
+    "Facility energy rose from 78.8 Wh to 139.7 Wh over the same window. Absolute consumption and consumption per token move in opposite directions, which is why WATTS reports both.",
+    "p95 latency went from 3244 ms to 7607 ms. Past the knee, further consolidation buys efficiency by spending the SLO.",
+    "Operational reading: consolidate workloads onto fewer busy accelerators and power down the rest, rather than running a large fleet at low utilisation."
+  ]
+}

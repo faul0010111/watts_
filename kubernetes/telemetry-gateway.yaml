@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telemetry-gateway
+  namespace: watts
+  labels: { app: telemetry-gateway }
+spec:
+  replicas: 3
+  selector: { matchLabels: { app: telemetry-gateway } }
+  template:
+    metadata:
+      labels: { app: telemetry-gateway }
+    spec:
+      serviceAccountName: watts-gateway
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: gateway
+          image: ghcr.io/example/watts-telemetry-gateway:0.1.0
+          ports: [{ containerPort: 8080, name: http }]
+          env:
+            - name: WATTS_DB_PASSWORD
+              valueFrom: { secretKeyRef: { name: watts-db, key: password } }
+            - name: WATTS_HMAC_KEYS            # per-workload keys, rotated out of band
+              valueFrom: { secretKeyRef: { name: watts-workload-keys, key: keys.json } }
+            - name: WATTS_OPA_URL
+              value: http://127.0.0.1:8181
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits:   { cpu: "2",  memory: 2Gi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          livenessProbe:  { httpGet: { path: /healthz, port: http }, periodSeconds: 10 }
+          readinessProbe: { httpGet: { path: /readyz,  port: http }, periodSeconds: 5 }
+        # Policy decisions must not depend on a remote call succeeding.
+        - name: opa
+          image: openpolicyagent/opa:1.0.0
+          args: ["run", "--server", "--addr=127.0.0.1:8181", "/policies"]
+          volumeMounts: [{ name: policies, mountPath: /policies, readOnly: true }]
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits:   { cpu: 500m, memory: 512Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+      volumes:
+        - name: policies
+          configMap: { name: watts-policies }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: telemetry-gateway, namespace: watts }
+spec:
+  selector: { app: telemetry-gateway }
+  ports: [{ port: 8080, targetPort: http, name: http }]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: watts-gateway, namespace: watts }
+# Deliberately bound to no Role: the control plane has no authority over workloads.

@@ -1,0 +1,137 @@
+{
+  "experiment": "exp08_security_constrained_optimization",
+  "manifest": {
+    "experiment_id": "exp08_security_constrained_optimization",
+    "version": "1.0",
+    "schema_version": "2",
+    "seed": 11,
+    "configuration": {
+      "slo_headroom_ms": 120.0,
+      "candidates": [
+        "Enable prefix caching",
+        "Batch window 50 -> 200 ms",
+        "Cap output tokens per task",
+        "Route fraud scoring to a smaller model",
+        "Defer regulated batch job to a cheaper hour",
+        "Share the response cache across tenants",
+        "Disable per-request audit logging",
+        "Batch window 200 -> 900 ms"
+      ],
+      "blocked_detail": [
+        {
+          "candidate": "Route fraud scoring to a smaller model",
+          "rule": "WATTS-SEC-006",
+          "reason": "workload is critical; deferral, downgrade and throttling are not available to the optimiser"
+        },
+        {
+          "candidate": "Defer regulated batch job to a cheaper hour",
+          "rule": "WATTS-SEC-006",
+          "reason": "workload is critical; deferral, downgrade and throttling are not available to the optimiser"
+        },
+        {
+          "candidate": "Share the response cache across tenants",
+          "rule": "WATTS-SEC-003",
+          "reason": "optimisation would weaken a security control; energy savings are not a valid trade"
+        },
+        {
+          "candidate": "Disable per-request audit logging",
+          "rule": "WATTS-SEC-003",
+          "reason": "optimisation would weaken a security control; energy savings are not a valid trade"
+        },
+        {
+          "candidate": "Batch window 200 -> 900 ms",
+          "rule": "WATTS-SEC-007",
+          "reason": "expected latency increase exceeds the remaining SLO headroom"
+        }
+      ]
+    },
+    "inputs": {
+      "rows": 2
+    },
+    "method": "single-factor sweep on the WATTS digital twin, repeated across seeds",
+    "metrics": [
+      "posture",
+      "description",
+      "applied",
+      "blocked",
+      "energy_saving_wh"
+    ],
+    "outputs": [
+      "experiments/results/exp08_security_constrained_optimization.json",
+      "experiments/results/exp08_security_constrained_optimization.md"
+    ],
+    "provenance": "simulated",
+    "reproduce": "make experiment EXP=exp08_security_constrained_optimization"
+  },
+  "title": "Experiment 08 - Security-constrained optimisation",
+  "research_question": "How do energy optimisation and security policy combine?",
+  "provenance": "simulated",
+  "disclaimer": "Produced by the WATTS digital twin. Valid as a statement about the model under the stated configuration, not as a hardware measurement.",
+  "generated_at": "2026-09-18T10:15:07Z",
+  "environment": {
+    "python": "3.12.3",
+    "platform": "Linux-6.18.44-fc-v36-x86_64-with-glibc2.39"
+  },
+  "config": {
+    "slo_headroom_ms": 120.0,
+    "candidates": [
+      "Enable prefix caching",
+      "Batch window 50 -> 200 ms",
+      "Cap output tokens per task",
+      "Route fraud scoring to a smaller model",
+      "Defer regulated batch job to a cheaper hour",
+      "Share the response cache across tenants",
+      "Disable per-request audit logging",
+      "Batch window 200 -> 900 ms"
+    ],
+    "blocked_detail": [
+      {
+        "candidate": "Route fraud scoring to a smaller model",
+        "rule": "WATTS-SEC-006",
+        "reason": "workload is critical; deferral, downgrade and throttling are not available to the optimiser"
+      },
+      {
+        "candidate": "Defer regulated batch job to a cheaper hour",
+        "rule": "WATTS-SEC-006",
+        "reason": "workload is critical; deferral, downgrade and throttling are not available to the optimiser"
+      },
+      {
+        "candidate": "Share the response cache across tenants",
+        "rule": "WATTS-SEC-003",
+        "reason": "optimisation would weaken a security control; energy savings are not a valid trade"
+      },
+      {
+        "candidate": "Disable per-request audit logging",
+        "rule": "WATTS-SEC-003",
+        "reason": "optimisation would weaken a security control; energy savings are not a valid trade"
+      },
+      {
+        "candidate": "Batch window 200 -> 900 ms",
+        "rule": "WATTS-SEC-007",
+        "reason": "expected latency increase exceeds the remaining SLO headroom"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "posture": "unconstrained",
+      "description": "No policy engine: every candidate is applied",
+      "applied": 8,
+      "blocked": 0,
+      "energy_saving_wh": 2340.0
+    },
+    {
+      "posture": "policy_enforced",
+      "description": "WATTS default policy set",
+      "applied": 3,
+      "blocked": 5,
+      "energy_saving_wh": 860.0
+    }
+  ],
+  "findings": [
+    "The policy engine blocked 5 of 8 candidates, leaving 860 Wh of the 2340 Wh an unconstrained optimiser would claim.",
+    "The 1480 Wh difference is not a saving that was lost. It is the set of changes that would have shared a cache across tenants, removed an audit control, downgraded a critical workload, and spent latency the SLO did not have.",
+    "Blocked candidates and the rule that blocked each one: Route fraud scoring to a smaller model (WATTS-SEC-006); Defer regulated batch job to a cheaper hour (WATTS-SEC-006); Share the response cache across tenants (WATTS-SEC-003); Disable per-request audit logging (WATTS-SEC-003); Batch window 200 -> 900 ms (WATTS-SEC-007)",
+    "Every optimisation that survives is still a proposal. Execution requires a human approval and writes an entry to the hash-chained audit log."
+  ]
+}

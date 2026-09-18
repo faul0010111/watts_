@@ -1,0 +1,89 @@
+{
+  "experiment": "exp04_model_routing",
+  "manifest": {
+    "experiment_id": "exp04_model_routing",
+    "version": "1.0",
+    "schema_version": "2",
+    "seed": 11,
+    "configuration": {
+      "rps": 1.0,
+      "duration_s": 420,
+      "strategies": [
+        "always-large",
+        "always-medium",
+        "routed"
+      ]
+    },
+    "inputs": {
+      "rows": 3
+    },
+    "method": "single-factor sweep on the WATTS digital twin, repeated across seeds",
+    "metrics": [
+      "strategy",
+      "wh_per_1k_tokens",
+      "wh_per_successful_request",
+      "facility_energy_wh",
+      "p95_latency_ms",
+      "energy_vs_large_pct",
+      "p95_vs_large_pct"
+    ],
+    "outputs": [
+      "experiments/results/exp04_model_routing.json",
+      "experiments/results/exp04_model_routing.md"
+    ],
+    "provenance": "simulated",
+    "reproduce": "make experiment EXP=exp04_model_routing"
+  },
+  "title": "Experiment 04 - Energy-aware model routing",
+  "research_question": "Can model routing reduce energy without violating the SLO or the quality floor?",
+  "provenance": "simulated",
+  "disclaimer": "Produced by the WATTS digital twin. Valid as a statement about the model under the stated configuration, not as a hardware measurement.",
+  "generated_at": "2026-09-18T10:15:02Z",
+  "environment": {
+    "python": "3.12.3",
+    "platform": "Linux-6.18.44-fc-v36-x86_64-with-glibc2.39"
+  },
+  "config": {
+    "rps": 1.0,
+    "duration_s": 420,
+    "strategies": [
+      "always-large",
+      "always-medium",
+      "routed"
+    ]
+  },
+  "rows": [
+    {
+      "strategy": "always-large",
+      "wh_per_1k_tokens": 0.08546388787407244,
+      "wh_per_successful_request": 0.21225264294451285,
+      "facility_energy_wh": 170.53770910462708,
+      "p95_latency_ms": 33986.97119321127,
+      "energy_vs_large_pct": 0.0,
+      "p95_vs_large_pct": 0.0
+    },
+    {
+      "strategy": "always-medium",
+      "wh_per_1k_tokens": 0.026652684171518434,
+      "wh_per_successful_request": 0.06620506438674119,
+      "facility_energy_wh": 110.16261643435466,
+      "p95_latency_ms": 3645.8473454511727,
+      "energy_vs_large_pct": -68.81409817115963,
+      "p95_vs_large_pct": -89.27280891043503
+    },
+    {
+      "strategy": "routed",
+      "wh_per_1k_tokens": 0.03868354342131019,
+      "wh_per_successful_request": 0.09611615354790913,
+      "facility_energy_wh": 123.44773927815318,
+      "p95_latency_ms": 17545.107565797938,
+      "energy_vs_large_pct": -54.73697209011973,
+      "p95_vs_large_pct": -48.37696049448947
+    }
+  ],
+  "findings": [
+    "Routing cut energy per token by 55% against serving everything on the large model, while p95 latency moved -48%.",
+    "The saving comes from the task mix: classification and extraction do not need a frontier model, and reasoning still gets one. Routing is a mix decision, not a uniform downgrade.",
+    "'always-medium' is cheaper still, and is the wrong answer: it serves tier-5 reasoning on a tier-3 model. It is included to show what the router refuses to do."
+  ]
+}

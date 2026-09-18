@@ -1,0 +1,227 @@
+{
+  "experiment": "exp09_prefill_vs_decode",
+  "manifest": {
+    "experiment_id": "exp09_prefill_vs_decode",
+    "version": "1.0",
+    "schema_version": "2",
+    "seed": 11,
+    "configuration": {
+      "shapes": [
+        [
+          100,
+          100
+        ],
+        [
+          1000,
+          100
+        ],
+        [
+          100,
+          1000
+        ],
+        [
+          4000,
+          1000
+        ]
+      ],
+      "batches": [
+        1,
+        8
+      ],
+      "seeds": [
+        11,
+        12,
+        13
+      ]
+    },
+    "inputs": {
+      "token_shapes": 4,
+      "batch_sizes": 2,
+      "runs": 24
+    },
+    "method": "sweep input/output ratio and batch size at fixed arrival rate; recover marginal token costs by ordinary least squares over per-request energy",
+    "metrics": [
+      "wh_per_request",
+      "wh_per_1k_tokens",
+      "wh_per_output_token",
+      "decode_prefill_ratio"
+    ],
+    "outputs": [
+      "experiments/results/exp09_prefill_vs_decode.json",
+      "experiments/results/exp09_prefill_vs_decode.md"
+    ],
+    "provenance": "simulated",
+    "reproduce": "make experiment EXP=exp09_prefill_vs_decode"
+  },
+  "title": "Experiment 09 - prefill versus decode energy",
+  "research_question": "What does an output token actually cost, relative to an input token?",
+  "provenance": "simulated",
+  "disclaimer": "Produced by the WATTS digital twin. Valid as a statement about the model under the stated configuration, not as a hardware measurement.",
+  "generated_at": "2026-09-18T10:15:08Z",
+  "environment": {
+    "python": "3.12.3",
+    "platform": "Linux-6.18.44-fc-v36-x86_64-with-glibc2.39"
+  },
+  "config": {
+    "shapes": [
+      [
+        100,
+        100
+      ],
+      [
+        1000,
+        100
+      ],
+      [
+        100,
+        1000
+      ],
+      [
+        4000,
+        1000
+      ]
+    ],
+    "batches": [
+      1,
+      8
+    ],
+    "seeds": [
+      11,
+      12,
+      13
+    ],
+    "model": "watts-sim-medium",
+    "duration_s": 240.0,
+    "rps": 1.5,
+    "seed": 11,
+    "fit": {
+      "baseline_wh": 0.004090100085603732,
+      "prefill_wh_per_token": 1.059301160129835e-05,
+      "decode_wh_per_token": 0.00013225447410225547,
+      "method": "ordinary least squares on (1, input_tokens, output_tokens)",
+      "r_squared": 0.9375478539652057,
+      "samples": 8,
+      "decode_prefill_ratio": 12.48506837149555
+    },
+    "validation": {
+      "samples": 8,
+      "mae": 0.012360681581133088,
+      "rmse": 0.017835466072853613,
+      "mean_relative_error": 0.12681660826625693,
+      "bias": -1.9081958235744878e-17,
+      "residual_std": 0.019066915250871067,
+      "ci95_bias": [
+        -0.013212698168796147,
+        0.01321269816879611
+      ],
+      "in_sample": true,
+      "method": "in-sample residuals; expect optimism",
+      "acceptable": false
+    }
+  },
+  "rows": [
+    {
+      "shape": "100 in / 100 out",
+      "batch": 1,
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "wh_per_request": 0.015955628553880618,
+      "wh_per_1k_tokens": 0.08007845572539296,
+      "wh_per_output_token": 0.00015955628553880618,
+      "p95_latency_ms": 409.4700945683201,
+      "vs_balanced": 0.0,
+      "spread": 7.752844542303211e-05
+    },
+    {
+      "shape": "1,000 in / 100 out",
+      "batch": 1,
+      "input_tokens": 1000,
+      "output_tokens": 100,
+      "wh_per_request": 0.03032777919920616,
+      "wh_per_1k_tokens": 0.02755641917523992,
+      "wh_per_output_token": 0.00030327779199206163,
+      "p95_latency_ms": 737.4400131597437,
+      "vs_balanced": 90.07574096371181,
+      "spread": 7.328795568951885e-05
+    },
+    {
+      "shape": "100 in / 1,000 out",
+      "batch": 1,
+      "input_tokens": 100,
+      "output_tokens": 1000,
+      "wh_per_request": 0.14874658271416022,
+      "wh_per_1k_tokens": 0.1352048353110065,
+      "wh_per_output_token": 0.0001487465827141602,
+      "p95_latency_ms": 41924.028278742604,
+      "vs_balanced": 832.251476097337,
+      "spread": 0.0005175873937321718
+    },
+    {
+      "shape": "4,000 in / 1,000 out",
+      "batch": 1,
+      "input_tokens": 4000,
+      "output_tokens": 1000,
+      "wh_per_request": 0.21197819934725678,
+      "wh_per_1k_tokens": 0.04238787173504361,
+      "wh_per_output_token": 0.00021197819934725678,
+      "p95_latency_ms": 105680.80143894431,
+      "vs_balanced": 1228.5480959363454,
+      "spread": 0.0005886638225913732
+    },
+    {
+      "shape": "100 in / 100 out",
+      "batch": 8,
+      "input_tokens": 100,
+      "output_tokens": 100,
+      "wh_per_request": 0.015955628553880618,
+      "wh_per_1k_tokens": 0.08007845572539296,
+      "wh_per_output_token": 0.00015955628553880618,
+      "p95_latency_ms": 609.4700945683503,
+      "vs_balanced": 0.0,
+      "spread": 7.752844542303211e-05
+    },
+    {
+      "shape": "1,000 in / 100 out",
+      "batch": 8,
+      "input_tokens": 1000,
+      "output_tokens": 100,
+      "wh_per_request": 0.03032777919920616,
+      "wh_per_1k_tokens": 0.02755641917523992,
+      "wh_per_output_token": 0.00030327779199206163,
+      "p95_latency_ms": 937.440013159756,
+      "vs_balanced": 90.07574096371181,
+      "spread": 7.328795568951885e-05
+    },
+    {
+      "shape": "100 in / 1,000 out",
+      "batch": 8,
+      "input_tokens": 100,
+      "output_tokens": 1000,
+      "wh_per_request": 0.12717773110585412,
+      "wh_per_1k_tokens": 0.1156059785062241,
+      "wh_per_output_token": 0.00012717773110585413,
+      "p95_latency_ms": 9105.078114372278,
+      "vs_balanced": 697.0712697176873,
+      "spread": 0.006326431137008107
+    },
+    {
+      "shape": "4,000 in / 1,000 out",
+      "batch": 8,
+      "input_tokens": 4000,
+      "output_tokens": 1000,
+      "wh_per_request": 0.14433847871481223,
+      "wh_per_1k_tokens": 0.028834122290515532,
+      "wh_per_output_token": 0.00014433847871481224,
+      "p95_latency_ms": 18092.094217952064,
+      "vs_balanced": 804.6242097413783,
+      "spread": 0.006777789817996732
+    }
+  ],
+  "findings": [
+    "Fitted on this run, one output token costs 12.5\u00d7 what one input token costs \u2014 output tokens are more expensive here. The fit recovers 1.059e-05 Wh per input token and 1.323e-04 Wh per output token, with a per-request baseline of 0.00409 Wh (R\u00b2 0.938).",
+    "Swapping the ratio at constant total tokens is not neutral: 100/1,000 costs 0.1487 Wh per request against 0.0303 Wh for 1,000/100 \u2014 +390%.",
+    "Long context with generation (4,000/1,000) reaches 0.2120 Wh per request but only 0.0424 Wh per 1k tokens: per-token figures fall as context grows while per-request cost rises, which is why WATTS reports both.",
+    "Batching to 8 changes the picture for the same shape: 0.0288 against 0.0424 Wh per 1k tokens (-32%), so any prefill/decode coefficient is only valid at the batch size it was fitted at.",
+    "In-sample error: MAE 0.01236 Wh, bias -0.00000 Wh. These samples came from the simulator, so this is a check that the fitting procedure recovers coefficients \u2014 not evidence about any real model."
+  ]
+}

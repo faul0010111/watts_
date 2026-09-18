@@ -1,0 +1,29 @@
+spring:
+  application: { name: watts-api }
+  kafka:
+    bootstrap-servers: ${WATTS_KAFKA:localhost:9092}
+    producer: { acks: all, compression-type: zstd }
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${WATTS_OIDC_ISSUER:https://issuer.example/}
+
+watts:
+  telemetry:
+    max-clock-skew: 5m
+    replay-window: 100000
+    # Physical bounds. A record outside them is rejected, whatever its signature says.
+    max-device-power-w: 1200
+    min-wh-per-1k-tokens: 0.0001
+    max-wh-per-1k-tokens: 1000
+  policy:
+    opa-url: ${WATTS_OPA_URL:http://127.0.0.1:8181}
+    fail-closed: true        # a policy engine that cannot answer denies
+
+management:
+  endpoints:
+    web:
+      exposure: { include: [health, prometheus] }
+  endpoint:
+    health: { probes: { enabled: true } }

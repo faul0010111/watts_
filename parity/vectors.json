@@ -1,0 +1,360 @@
+{
+  "schema_version": "1",
+  "purpose": "fixed inputs and the outputs the Python reference implementation produces; any second implementation must reproduce them exactly",
+  "tolerance": 1e-09,
+  "note": "regenerate with `python tools/generate_parity_vectors.py` whenever the reference behaviour changes deliberately, and never to make a failing implementation pass",
+  "attribution": [
+    {
+      "id": "attr-01",
+      "input": {
+        "model": "watts-sim-medium",
+        "input_tokens": 1000,
+        "output_tokens": 100,
+        "energy_wh": 0.05
+      },
+      "expected": {
+        "input_energy_wh": 0.02625,
+        "output_energy_wh": 0.02375,
+        "wh_per_input_token": 2.625e-05,
+        "wh_per_output_token": 0.0002375
+      }
+    },
+    {
+      "id": "attr-02",
+      "input": {
+        "model": "watts-sim-medium",
+        "input_tokens": 100,
+        "output_tokens": 1000,
+        "energy_wh": 0.1
+      },
+      "expected": {
+        "input_energy_wh": 0.001093180635,
+        "output_energy_wh": 0.098906819365,
+        "wh_per_input_token": 1.0931806e-05,
+        "wh_per_output_token": 9.8906819e-05
+      }
+    },
+    {
+      "id": "attr-03",
+      "input": {
+        "model": "watts-sim-small",
+        "input_tokens": 4000,
+        "output_tokens": 256,
+        "energy_wh": 0.025
+      },
+      "expected": {
+        "input_energy_wh": 0.015862944162,
+        "output_energy_wh": 0.009137055838,
+        "wh_per_input_token": 3.965736e-06,
+        "wh_per_output_token": 3.5691624e-05
+      }
+    },
+    {
+      "id": "attr-04",
+      "input": {
+        "model": "watts-sim-large",
+        "input_tokens": 8000,
+        "output_tokens": 2000,
+        "energy_wh": 1.25
+      },
+      "expected": {
+        "input_energy_wh": 0.386178861789,
+        "output_energy_wh": 0.863821138211,
+        "wh_per_input_token": 4.8272358e-05,
+        "wh_per_output_token": 0.000431910569
+      }
+    },
+    {
+      "id": "attr-05",
+      "input": {
+        "model": "watts-sim-medium",
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "energy_wh": 0.01
+      },
+      "expected": {
+        "input_energy_wh": 0.0,
+        "output_energy_wh": 0.0,
+        "wh_per_input_token": 0.0,
+        "wh_per_output_token": 0.0
+      }
+    }
+  ],
+  "policy": [
+    {
+      "id": "pol-01",
+      "input": {
+        "action": "route_workload",
+        "model": "watts-sim-large",
+        "approved_models": [
+          "watts-sim-small",
+          "watts-sim-medium"
+        ]
+      },
+      "expected": {
+        "allow": false,
+        "rule_id": "WATTS-SEC-001"
+      }
+    },
+    {
+      "id": "pol-02",
+      "input": {
+        "action": "route_workload",
+        "model": "watts-sim-medium",
+        "approved_models": [
+          "watts-sim-medium"
+        ]
+      },
+      "expected": {
+        "allow": true,
+        "rule_id": "WATTS-ALLOW"
+      }
+    },
+    {
+      "id": "pol-03",
+      "input": {
+        "action": "route_workload",
+        "model": "watts-sim-medium",
+        "provider": "public-api",
+        "approved_models": [
+          "watts-sim-medium"
+        ],
+        "approved_providers": [
+          "on-prem"
+        ],
+        "data_classification": "restricted"
+      },
+      "expected": {
+        "allow": false,
+        "rule_id": "WATTS-SEC-002"
+      }
+    },
+    {
+      "id": "pol-04",
+      "input": {
+        "action": "apply_optimization",
+        "weakens_control": true,
+        "energy_saving_wh": 50000.0
+      },
+      "expected": {
+        "allow": false,
+        "rule_id": "WATTS-SEC-003"
+      }
+    },
+    {
+      "id": "pol-05",
+      "input": {
+        "action": "apply_optimization",
+        "optimization_type": "defer_workload",
+        "workload_criticality": "critical"
+      },
+      "expected": {
+        "allow": false,
+        "rule_id": "WATTS-SEC-006"
+      }
+    },
+    {
+      "id": "pol-06",
+      "input": {
+        "action": "apply_optimization",
+        "slo_headroom_ms": 40.0,
+        "expected_latency_delta_ms": 250.0
+      },
+      "expected": {
+        "allow": false,
+        "rule_id": "WATTS-SEC-007"
+      }
+    },
+    {
+      "id": "pol-07",
+      "input": {
+        "action": "execute_change",
+        "roles": [
+          "sre"
+        ],
+        "requires_human_approval": true,
+        "human_approved": false
+      },
+      "expected": {
+        "allow": false,
+        "rule_id": "WATTS-SEC-004"
+      }
+    },
+    {
+      "id": "pol-08",
+      "input": {
+        "action": "execute_change",
+        "roles": [
+          "viewer"
+        ],
+        "requires_human_approval": false
+      },
+      "expected": {
+        "allow": false,
+        "rule_id": "WATTS-SEC-008"
+      }
+    },
+    {
+      "id": "pol-09",
+      "input": {
+        "action": "read_telemetry",
+        "cross_tenant": true
+      },
+      "expected": {
+        "allow": false,
+        "rule_id": "WATTS-SEC-005"
+      }
+    },
+    {
+      "id": "pol-10",
+      "input": {
+        "action": "execute_change",
+        "roles": [
+          "sre"
+        ],
+        "requires_human_approval": true,
+        "human_approved": true
+      },
+      "expected": {
+        "allow": true,
+        "rule_id": "WATTS-ALLOW"
+      }
+    }
+  ],
+  "budgets": [
+    {
+      "id": "bud-01",
+      "input": {
+        "budget": {
+          "workload": "w",
+          "energy_wh_per_hour": 100.0
+        },
+        "state": {
+          "workload": "w",
+          "window_s": 360.0,
+          "energy_wh": 20.0,
+          "tokens": 0,
+          "cost": 0.0,
+          "successful_requests": 0
+        }
+      },
+      "expected": {
+        "breaches": [
+          {
+            "dimension": "energy_wh_per_hour",
+            "projected": 200.0,
+            "utilization": 2.0
+          }
+        ]
+      }
+    },
+    {
+      "id": "bud-02",
+      "input": {
+        "budget": {
+          "workload": "w",
+          "energy_wh_per_hour": 1000.0
+        },
+        "state": {
+          "workload": "w",
+          "window_s": 3600.0,
+          "energy_wh": 500.0,
+          "tokens": 0,
+          "cost": 0.0,
+          "successful_requests": 0
+        }
+      },
+      "expected": {
+        "breaches": []
+      }
+    },
+    {
+      "id": "bud-03",
+      "input": {
+        "budget": {
+          "workload": "w",
+          "tokens_per_hour": 1000000.0
+        },
+        "state": {
+          "workload": "w",
+          "window_s": 600.0,
+          "energy_wh": 0.0,
+          "tokens": 200000,
+          "cost": 0.0,
+          "successful_requests": 0
+        }
+      },
+      "expected": {
+        "breaches": [
+          {
+            "dimension": "tokens_per_hour",
+            "projected": 1200000.0,
+            "utilization": 1.2
+          }
+        ]
+      }
+    },
+    {
+      "id": "bud-04",
+      "input": {
+        "budget": {
+          "workload": "w",
+          "wh_per_successful_request": 0.05
+        },
+        "state": {
+          "workload": "w",
+          "window_s": 600.0,
+          "energy_wh": 30.0,
+          "tokens": 0,
+          "cost": 0.0,
+          "successful_requests": 400
+        }
+      },
+      "expected": {
+        "breaches": [
+          {
+            "dimension": "wh_per_successful_request",
+            "projected": 0.075,
+            "utilization": 1.5
+          }
+        ]
+      }
+    }
+  ],
+  "canonical_json": [
+    {
+      "id": "json-01",
+      "input": {
+        "request_id": "req-parity-001",
+        "model": "watts-sim-medium",
+        "provider": "on-prem",
+        "input_tokens": 1000,
+        "output_tokens": 120,
+        "latency_ms": 842.5,
+        "gpu_id": "gpu-0",
+        "tenant": "acme",
+        "timestamp": 1750000000.0,
+        "security_policy": "default",
+        "prompt_hash": "0123456789abcdef",
+        "context_prefix_hash": null,
+        "session_id_hash": "fedcba9876543210",
+        "task_class": "extraction",
+        "batch_size": 8,
+        "context_window": 32000,
+        "success": true,
+        "cache_hit": false,
+        "agent_step": 0,
+        "energy_wh": 0.0421,
+        "energy_provenance": "simulated",
+        "queue_wait_ms": 120.0,
+        "service_ms": 722.5,
+        "metadata": {}
+      },
+      "expected": {
+        "canonical_json": "{\"agent_step\":0,\"batch_size\":8,\"cache_hit\":false,\"context_prefix_hash\":null,\"context_window\":32000,\"energy_provenance\":\"simulated\",\"energy_wh\":0.0421,\"gpu_id\":\"gpu-0\",\"input_tokens\":1000,\"latency_ms\":842.5,\"metadata\":{},\"model\":\"watts-sim-medium\",\"output_tokens\":120,\"prompt_hash\":\"0123456789abcdef\",\"provider\":\"on-prem\",\"queue_wait_ms\":120.0,\"request_id\":\"req-parity-001\",\"security_policy\":\"default\",\"service_ms\":722.5,\"session_id_hash\":\"fedcba9876543210\",\"success\":true,\"task_class\":\"extraction\",\"tenant\":\"acme\",\"timestamp\":1750000000.0}",
+        "signature_hex": "d4fcb445ce938b3cdeebeda4de3fa827c9ec3084f4e55a32e9377e528cf670e1",
+        "hmac_key_utf8": "parity-test-key"
+      }
+    }
+  ]
+}

@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WATTS Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* WATTS Command Center — dark glass.
+   One rule governs colour: it encodes provenance, never decoration. Green is a hardware
+   counter, blue is arithmetic over measured values, amber is a declared coefficient,
+   violet is the digital twin. Nothing is coloured to look nice. */
+:root {
+  --bg: #0E1417;
+  --bg-2: #121A1E;
+  --glass: rgba(255,255,255,.045);
+  --glass-2: rgba(255,255,255,.075);
+  --edge: rgba(255,255,255,.10);
+  --edge-2: rgba(255,255,255,.18);
+  --ink: #E6EDEF;
+  --ink-soft: #94A4AB;
+  --ink-dim: #64757C;
+  --measured: #46C08A;
+  --derived: #5AA9F0;
+  --estimated: #E2A63C;
+  --simulated: #A487E8;
+  --alert: #F0705F;
+  --gpu: #5AA9F0;
+  --host: #7E8F98;
+  --cooling: #46C08A;
+  --grid: rgba(230,237,239,.10);
+  --radius: 10px;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #EDEFEC; --bg-2: #F7F8F5; --glass: rgba(16,22,25,.035); --glass-2: rgba(16,22,25,.06);
+    --edge: rgba(16,22,25,.12); --edge-2: rgba(16,22,25,.22);
+    --ink: #10181B; --ink-soft: #4C5A60; --ink-dim: #77868C;
+    --measured: #197A54; --derived: #1F5C97; --estimated: #8C5A0F; --simulated: #5E3FA0;
+    --alert: #A5291D; --gpu: #1F5C97; --host: #6C7C84; --cooling: #197A54;
+    --grid: rgba(16,24,27,.10);
+  }
+}
+:root[data-theme="light"] {
+  --bg: #EDEFEC; --bg-2: #F7F8F5; --glass: rgba(16,22,25,.035); --glass-2: rgba(16,22,25,.06);
+  --edge: rgba(16,22,25,.12); --edge-2: rgba(16,22,25,.22);
+  --ink: #10181B; --ink-soft: #4C5A60; --ink-dim: #77868C;
+  --measured: #197A54; --derived: #1F5C97; --estimated: #8C5A0F; --simulated: #5E3FA0;
+  --alert: #A5291D; --gpu: #1F5C97; --host: #6C7C84; --cooling: #197A54;
+  --grid: rgba(16,24,27,.10);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background:
+    radial-gradient(1100px 520px at 12% -8%, rgba(90,169,240,.10), transparent 60%),
+    radial-gradient(900px 480px at 95% 0%, rgba(164,135,232,.09), transparent 62%),
+    var(--bg);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1240px; margin: 0 auto; padding: 24px 18px 80px; }
+h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.01em; }
+h1 { font-size: 1.45rem; }
+h2 { font-size: 1rem; }
+h3 { font-size: .93rem; }
+.num { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+.soft { color: var(--ink-soft); }
+.dim { color: var(--ink-dim); }
+
+/* masthead + run stamp */
+header.mast { display:flex; flex-wrap:wrap; gap:16px; align-items:flex-start; justify-content:space-between;
+  padding-bottom:14px; border-bottom:1px solid var(--edge); }
+header.mast p { margin:6px 0 0; color:var(--ink-soft); font-size:.88rem; max-width:62ch; }
+.stamp { font-size:.76rem; color:var(--ink-dim); text-align:right; line-height:1.7; }
+.stamp b { color:var(--ink-soft); font-weight:500; }
+
+/* provenance legend */
+.legend { display:flex; flex-wrap:wrap; gap:16px; margin:14px 0 18px; font-size:.79rem; color:var(--ink-soft); }
+.dot { display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:6px; vertical-align:1px; }
+.p-measured{background:var(--measured)} .p-derived{background:var(--derived)}
+.p-estimated{background:var(--estimated)} .p-simulated{background:var(--simulated)}
+.tag { font-size:.7rem; padding:1px 6px; border:1px solid currentColor; border-radius:999px; white-space:nowrap; }
+.tag.measured{color:var(--measured)} .tag.derived{color:var(--derived)}
+.tag.estimated{color:var(--estimated)} .tag.simulated{color:var(--simulated)}
+
+/* section nav */
+nav.tabs { position:sticky; top:0; z-index:5; display:flex; gap:6px; flex-wrap:wrap; padding:10px 0;
+  background:linear-gradient(var(--bg) 70%, transparent); margin-bottom:6px; }
+nav.tabs a { text-decoration:none; color:var(--ink-soft); font-size:.83rem; padding:6px 12px;
+  border:1px solid var(--edge); border-radius:999px; background:var(--glass);
+  backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+nav.tabs a:hover { color:var(--ink); border-color:var(--edge-2); }
+
+section.band { margin-top:26px; }
+section.band > h2 { display:flex; align-items:baseline; gap:10px; margin-bottom:4px; }
+section.band > h2 .sub { font-size:.78rem; color:var(--ink-dim); font-weight:400; }
+
+.grid { display:grid; grid-template-columns:repeat(12,1fr); gap:12px; margin-top:12px; }
+.card {
+  grid-column: span 12; padding:16px 18px; border:1px solid var(--edge); border-radius:var(--radius);
+  background:var(--glass); backdrop-filter:blur(14px) saturate(120%);
+  -webkit-backdrop-filter:blur(14px) saturate(120%);
+}
+.card > header { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.card > header .note { font-size:.76rem; color:var(--ink-dim); }
+@media (min-width:900px){ .c3{grid-column:span 3} .c4{grid-column:span 4} .c6{grid-column:span 6}
+  .c8{grid-column:span 8} .c9{grid-column:span 9} }
+
+/* metric tiles */
+.tile .v { font-size:1.65rem; font-weight:500; letter-spacing:-.02em; line-height:1.15; }
+.tile .k { font-size:.76rem; color:var(--ink-soft); margin-bottom:4px; }
+.tile .f { font-size:.72rem; color:var(--ink-dim); margin-top:4px; }
+
+/* hero bus */
+.hero { display:flex; flex-wrap:wrap; align-items:flex-end; gap:26px; }
+.hero .big { font-size:clamp(2.4rem,7.5vw,3.6rem); font-weight:500; letter-spacing:-.035em; line-height:.95; }
+.hero .unit { font-size:1rem; color:var(--ink-soft); margin-left:6px; }
+.hero .right { margin-left:auto; text-align:right; }
+.busbar { display:flex; height:22px; margin-top:16px; border:1px solid var(--edge); border-radius:6px; overflow:hidden; }
+.busbar span { display:block; height:100%; }
+.buskeys { display:flex; flex-wrap:wrap; gap:18px; margin-top:9px; font-size:.79rem; color:var(--ink-soft); }
+.buskeys b { color:var(--ink); font-weight:500; }
+
+svg { display:block; width:100%; height:auto; overflow:visible; }
+table { width:100%; border-collapse:collapse; }
+th, td { text-align:left; padding:7px 8px 7px 0; border-bottom:1px solid var(--edge); font-size:.84rem; }
+th { color:var(--ink-dim); font-weight:500; font-size:.76rem; text-transform:none; }
+tr:last-child td { border-bottom:none; }
+td.n, th.n { text-align:right; }
+.scroll { overflow-x:auto; }
+
+.bars { display:grid; gap:7px; }
+.bars .row { display:grid; grid-template-columns:104px 1fr 96px; gap:10px; align-items:center; font-size:.82rem; }
+.track { position:relative; height:10px; border-radius:3px; background:var(--glass-2); overflow:hidden; }
+.track i { position:absolute; inset:0 auto 0 0; display:block; background:var(--derived); }
+.track i.hot{background:var(--estimated)} .track i.crit{background:var(--alert)}
+.track u { position:absolute; top:-3px; bottom:-3px; width:2px; background:var(--ink-soft); }
+
+.chip { display:inline-block; font-size:.72rem; padding:2px 8px; border-radius:999px;
+  border:1px solid var(--edge-2); color:var(--ink-soft); }
+.chip.ok{color:var(--measured); border-color:color-mix(in srgb, var(--measured) 45%, transparent)}
+.chip.bad{color:var(--alert); border-color:color-mix(in srgb, var(--alert) 45%, transparent)}
+.chip.warn{color:var(--estimated); border-color:color-mix(in srgb, var(--estimated) 45%, transparent)}
+
+.item { padding:11px 0; border-top:1px solid var(--edge); }
+.item:first-of-type { border-top:none; }
+.item .meta { display:flex; flex-wrap:wrap; gap:12px; margin-top:5px; font-size:.78rem; color:var(--ink-soft); }
+.item .meta b { color:var(--ink); font-weight:500; }
+.item ul { margin:6px 0 0; padding-left:17px; font-size:.78rem; color:var(--ink-dim); }
+.save { color:var(--measured); }
+
+.alert { border:1px solid color-mix(in srgb, var(--alert) 50%, transparent); border-left-width:3px; }
+.alert h2 { color:var(--alert); }
+.alert ol { margin:8px 0 0; padding-left:20px; font-size:.82rem; color:var(--ink-soft); }
+.alert ol b { color:var(--ink); font-weight:500; }
+
+footer.foot { margin-top:34px; padding-top:14px; border-top:1px solid var(--edge);
+  color:var(--ink-dim); font-size:.78rem; }
+footer.foot code { color:var(--ink-soft); word-break:break-all; }
+@media (prefers-reduced-motion:no-preference){
+  .busbar span, .track i { transition: width .45s cubic-bezier(.2,.7,.3,1); }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="mast">
+  <div>
+    <h1>WATTS Command Center</h1>
+    <p>Energy, tokens, heat, cost and policy for one serving window. Colour encodes where
+      each number came from, not how important it is.</p>
+  </div>
+  <div class="stamp" id="stamp"></div>
+</header>
+
+<div class="legend">
+  <span><i class="dot p-measured"></i>Measured — hardware counter</span>
+  <span><i class="dot p-derived"></i>Derived — arithmetic over measured values</span>
+  <span><i class="dot p-estimated"></i>Estimated — declared coefficients</span>
+  <span><i class="dot p-simulated"></i>Simulated — digital twin, not a measurement</span>
+</div>
+
+<nav class="tabs">
+  <a href="#overview">Overview</a>
+  <a href="#efficiency">Efficiency</a>
+  <a href="#optimization">Optimisation</a>
+  <a href="#security">Security</a>
+  <a href="#forecast">Forecast</a>
+</nav>
+
+<!-- ============================ OVERVIEW ============================ -->
+<section class="band" id="overview">
+  <h2>Overview <span class="sub">what the window did</span></h2>
+  <div class="grid">
+    <div class="card c8">
+      <div class="hero">
+        <div>
+          <div class="big num" id="kw">—<span class="unit">kW</span></div>
+          <div class="soft" style="font-size:.82rem;margin-top:6px">Facility draw, mean over the window
+            <span class="tag simulated" id="power-tag">simulated</span></div>
+        </div>
+        <div class="right">
+          <div class="num" style="font-size:1.9rem" id="pue">—</div>
+          <div class="dim" style="font-size:.76rem">PUE, derived</div>
+        </div>
+      </div>
+      <div class="busbar" id="busbar"></div>
+      <div class="buskeys" id="buskeys"></div>
+    </div>
+    <div class="card c4" id="overview-tiles"></div>
+
+    <div class="card c8">
+      <header><h3>Power over the window</h3><span class="note">accelerators · hosts · cooling</span></header>
+      <div id="chart-power"></div>
+    </div>
+    <div class="card c4">
+      <header><h3>Budgets</h3><span class="note">projected hourly</span></header>
+      <div class="bars" id="budget-bars"></div>
+      <table id="objectives" style="margin-top:12px"></table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ EFFICIENCY ============================ -->
+<section class="band" id="efficiency">
+  <h2>Efficiency <span class="sub">energy per unit of useful work</span></h2>
+  <div class="grid">
+    <div class="card c4" id="efficiency-tiles"></div>
+    <div class="card c4">
+      <header><h3>Prefill vs decode</h3><span class="note">attributed, not measured</span></header>
+      <div id="chart-split"></div>
+      <p class="dim" style="font-size:.76rem;margin:10px 0 0">The split comes from the model
+        profile's weights. The request total keeps the provenance of its measurement; this
+        division is an attribution.</p>
+    </div>
+    <div class="card c4">
+      <header><h3>Energy per token by task</h3></header>
+      <div id="chart-tasks"></div>
+    </div>
+
+    <div class="card c8">
+      <header><h3>Token waste</h3><span class="note">each finding carries its evidence and a recommendation</span></header>
+      <div class="scroll"><table id="findings"></table></div>
+      <p class="dim" style="font-size:.76rem;margin:10px 0 0" id="findings-note"></p>
+    </div>
+    <div class="card c4">
+      <header><h3>Batch and queue</h3><span class="note">where latency goes</span></header>
+      <div class="bars" id="queue-bars"></div>
+      <div id="chart-queue" style="margin-top:12px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ OPTIMIZATION ============================ -->
+<section class="band" id="optimization">
+  <h2>Optimisation <span class="sub">proposed, simulated, never applied</span></h2>
+  <div class="grid">
+    <div class="card c8">
+      <header><h3>Plan</h3><span class="note">each step re-simulated on the state the previous one left</span></header>
+      <div class="scroll"><table id="plan"></table></div>
+      <p class="soft" style="font-size:.8rem;margin:10px 0 0" id="plan-note"></p>
+    </div>
+    <div class="card c4" id="optimization-tiles"></div>
+
+    <div class="card c6">
+      <header><h3>Energy–latency–quality frontier</h3><span class="note">admissibility first</span></header>
+      <div class="scroll"><table id="frontier"></table></div>
+      <p class="dim" style="font-size:.76rem;margin:10px 0 0" id="frontier-note"></p>
+    </div>
+    <div class="card c6">
+      <header><h3>If nothing changes</h3><span class="note">no-action projection</span></header>
+      <div class="scroll"><table id="noaction"></table></div>
+      <p class="soft" style="font-size:.8rem;margin:10px 0 0" id="noaction-verdict"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ SECURITY ============================ -->
+<section class="band" id="security">
+  <h2>Security <span class="sub">what policy allowed, and what it stopped</span></h2>
+  <div id="anomaly-slot"></div>
+  <div class="grid">
+    <div class="card c8">
+      <header><h3>Policy gate</h3><span class="note">every proposal, with its outcome</span></header>
+      <div id="gate"></div>
+    </div>
+    <div class="card c4" id="security-tiles"></div>
+    <div class="card c12">
+      <header><h3>Root cause</h3><span class="note">graded, never asserted</span></header>
+      <p id="rca-statement" style="margin:0 0 8px"></p>
+      <div class="scroll"><table id="detections"></table></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ FORECAST ============================ -->
+<section class="band" id="forecast">
+  <h2>Forecast <span class="sub">central path and interval, from this window's residuals</span></h2>
+  <div class="grid">
+    <div class="card c8">
+      <header><h3>Facility power</h3><span class="note">80% interval</span></header>
+      <div id="chart-forecast"></div>
+    </div>
+    <div class="card c4">
+      <header><h3>Budget risk</h3></header>
+      <div id="breach"></div>
+      <table id="forecast-table" style="margin-top:10px"></table>
+    </div>
+  </div>
+</section>
+
+<footer class="foot" id="foot"></footer>
+</div>
+
+<script id="watts-data" type="application/json">__WATTS_DATA__</script>
+<script>
+const D = JSON.parse(document.getElementById("watts-data").textContent);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmt = (v, d = 2) => (v === null || v === undefined || Number.isNaN(v)) ? "—"
+  : Number(v).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const el = id => document.getElementById(id);
+const svgNS = "http://www.w3.org/2000/svg";
+function svg(w, h, label) {
+  const s = document.createElementNS(svgNS, "svg");
+  s.setAttribute("viewBox", `0 0 ${w} ${h}`); s.setAttribute("role", "img");
+  s.setAttribute("aria-label", label || ""); return s;
+}
+function node(tag, attrs, text) {
+  const e = document.createElementNS(svgNS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function tiles(host, rows) {
+  host.innerHTML = rows.map(r => `<div class="tile" style="padding:6px 0">
+    <div class="k">${esc(r.k)}</div>
+    <div class="v num" ${r.color ? `style="color:${r.color}"` : ""}>${r.v}</div>
+    ${r.f ? `<div class="f">${esc(r.f)}</div>` : ""}</div>`).join("");
+}
+
+/* ---------- masthead ---------- */
+const run = D.run;
+el("stamp").innerHTML =
+  `<b>${esc(run.run_id)}</b><br>seed <span class="num">${run.seed}</span> · config
+   <span class="num">${esc(run.configuration_hash)}</span><br>
+   policy ${esc(run.policy_version)} · WATTS ${esc(run.version)}<br>${esc(run.started_at_utc)}`;
+
+/* ---------- overview ---------- */
+const obs = D.observation, energy = D.energy, series = D.series;
+const windowS = obs.window_s || 1;
+const facilityW = energy.facility_wh * 3600 / windowS;
+const gpuW = (energy.gpu_wh) * 3600 / windowS;
+const hostW = (energy.it_wh - energy.gpu_wh) * 3600 / windowS;
+const coolW = (energy.facility_wh - energy.it_wh) * 3600 / windowS;
+el("kw").innerHTML = `${fmt(facilityW / 1000, 2)}<span class="unit">kW</span>`;
+el("pue").textContent = fmt(energy.pue.pue, 3);
+el("power-tag").textContent = energy.provenance;
+el("power-tag").className = "tag " + energy.provenance;
+
+const parts = [
+  { k: "Accelerators", w: gpuW, c: css("--gpu") },
+  { k: "Hosts, memory, network", w: hostW, c: css("--host") },
+  { k: "Cooling and conversion", w: coolW, c: css("--cooling") },
+];
+el("busbar").innerHTML = parts.map(p =>
+  `<span style="width:${(p.w / facilityW * 100).toFixed(2)}%;background:${p.c}" title="${p.k}"></span>`).join("");
+el("buskeys").innerHTML = parts.map(p =>
+  `<span><i class="dot" style="background:${p.c}"></i>${p.k}
+   <b class="num">${fmt(p.w / 1000, 2)} kW</b> (${(p.w / facilityW * 100).toFixed(0)}%)</span>`).join("");
+
+tiles(el("overview-tiles"), [
+  { k: "Tokens", v: fmt(obs.total_tokens, 0), f: `${fmt(obs.tokens_per_s, 0)} tok/s` },
+  { k: "Facility Wh / 1k tokens", v: fmt(energy.facility_wh_per_1k_tokens, 4), f: "simulated" },
+  { k: "Wh / successful request", v: fmt(energy.wh_per_successful_request, 4),
+    f: `${fmt(obs.requests, 0)} requests, ${(obs.error_rate * 100).toFixed(2)}% errors` },
+  { k: "Accelerator utilisation", v: `${(obs.queueing.device_utilization * 100).toFixed(0)}%`,
+    f: `mean batch ${fmt(D.plan.baseline.mean_batch_size, 1)}` },
+]);
+
+/* stacked power chart */
+(function () {
+  const W = 760, H = 220, L = 46, R = 8, T = 10, B = 24;
+  const s = series.power;
+  if (!s.length) return;
+  const g = svg(W, H, "Facility power over the window");
+  const maxY = Math.max(...s.map(p => p.gpu + p.host + p.cooling)) * 1.08;
+  const x = i => L + (W - L - R) * (s[i].t / (s[s.length - 1].t || 1));
+  const y = v => H - B - (H - B - T) * (v / maxY);
+  for (let i = 0; i <= 4; i++) {
+    const v = maxY * i / 4;
+    g.appendChild(node("line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: css("--grid") }));
+    g.appendChild(node("text", { x: L - 8, y: y(v) + 4, "text-anchor": "end", fill: css("--ink-dim"),
+      "font-size": 10.5, "font-family": "IBM Plex Mono, monospace" }, (v / 1000).toFixed(1)));
+  }
+  let base = s.map(() => 0);
+  [{ k: "cooling", c: css("--cooling") }, { k: "host", c: css("--host") }, { k: "gpu", c: css("--gpu") }]
+    .forEach(layer => {
+      const top = s.map((p, i) => base[i] + p[layer.k]);
+      const d = s.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(top[i]).toFixed(1)}`).join("")
+        + s.map((p, i) => `L${x(s.length - 1 - i).toFixed(1)},${y(base[s.length - 1 - i]).toFixed(1)}`).join("") + "Z";
+      g.appendChild(node("path", { d, fill: layer.c, "fill-opacity": .78 }));
+      base = top;
+    });
+  g.appendChild(node("text", { x: L, y: H - 5, fill: css("--ink-dim"), "font-size": 10.5,
+    "font-family": "IBM Plex Mono, monospace" }, "0s"));
+  g.appendChild(node("text", { x: W - R, y: H - 5, "text-anchor": "end", fill: css("--ink-dim"),
+    "font-size": 10.5, "font-family": "IBM Plex Mono, monospace" }, fmt(s[s.length - 1].t, 0) + "s"));
+  el("chart-power").appendChild(g);
+})();
+
+/* budgets + objectives */
+(function () {
+  const budgets = D.budgets, cfg = run.configuration;
+  const projectedEnergy = energy.facility_wh * 3600 / windowS;
+  const projectedTokens = obs.total_tokens * 3600 / windowS;
+  const rows = [
+    { name: "energy", used: projectedEnergy, limit: cfg.energy_budget_wh_per_hour, unit: "Wh/h" },
+    { name: "tokens", used: projectedTokens, limit: cfg.token_budget_per_hour, unit: "tok/h" },
+  ];
+  el("budget-bars").innerHTML = rows.map(r => {
+    const u = r.limit ? r.used / r.limit : 0;
+    const cls = u > 1 ? "crit" : u > 0.85 ? "hot" : "";
+    return `<div class="row"><span>${r.name}</span>
+      <span class="track"><i class="${cls}" style="width:${Math.min(u, 1) * 100}%"></i>
+      <u style="left:100%"></u></span>
+      <span class="num">${(u * 100).toFixed(0)}%</span></div>`;
+  }).join("");
+
+  const slo = D.slo;
+  const objectives = [
+    ["p95 latency", `${fmt(slo.p95_latency_ms, 0)} ms`, `${fmt(cfg.p95_latency_slo_ms, 0)} ms`,
+      slo.p95_latency_ms <= cfg.p95_latency_slo_ms],
+    ["availability", `${(slo.availability * 100).toFixed(2)}%`, `${(cfg.availability_slo * 100).toFixed(1)}%`,
+      slo.availability >= cfg.availability_slo],
+    ["Wh / successful req", fmt(slo.wh_per_successful_request, 4), fmt(cfg.max_wh_per_successful_request, 2),
+      slo.wh_per_successful_request <= cfg.max_wh_per_successful_request],
+  ];
+  el("objectives").innerHTML = "<tr><th>Objective</th><th class='n'>Observed</th><th class='n'>Target</th><th class='n'></th></tr>"
+    + objectives.map(([k, v, t, ok]) =>
+      `<tr><td>${k}</td><td class="n num">${v}</td><td class="n num dim">${t}</td>
+       <td class="n"><span class="chip ${ok ? "ok" : "bad"}">${ok ? "within" : "over"}</span></td></tr>`).join("");
+})();
+
+/* ---------- efficiency ---------- */
+const eff = D.efficiency.metrics;
+tiles(el("efficiency-tiles"), [
+  { k: "Wh per useful task", v: fmt(eff.wh_per_useful_task, 4),
+    f: `${fmt(eff.useful_tasks, 0)} tasks reached an outcome` },
+  { k: "Tokens per request", v: fmt(eff.tokens_per_request, 0),
+    f: `${(eff.useful_work_fraction * 100).toFixed(1)}% of requests succeeded` },
+  { k: "Wasted energy (upper bound)", v: fmt(D.efficiency.wasted_energy_wh_upper_bound, 3) + " Wh",
+    f: "findings overlap; not additive", color: css("--estimated") },
+  { k: "Cost per 1k tokens", v: `${D.finops.currency} ${fmt(D.finops.unit_costs.cost_per_1k_tokens, 5)}`,
+    f: `${fmt(D.finops.unit_costs.energy_cost_per_1k_tokens, 5)} of it electricity` },
+]);
+
+/* prefill vs decode */
+(function () {
+  const p = series.prefill_wh, d = series.decode_wh, total = p + d || 1;
+  const W = 300, H = 128;
+  const g = svg(W, H, "Prefill versus decode share of attributed energy");
+  const barY = 40, barH = 30;
+  const pw = (W) * (p / total);
+  g.appendChild(node("rect", { x: 0, y: barY, width: pw, height: barH, rx: 4,
+    fill: css("--simulated"), "fill-opacity": .85 }));
+  g.appendChild(node("rect", { x: pw + 3, y: barY, width: Math.max(W - pw - 3, 1), height: barH, rx: 4,
+    fill: css("--simulated"), "fill-opacity": .42 }));
+  const labels = [["prefill", p, 0, .85], ["decode", d, pw + 8, .42]];
+  labels.forEach(([name, value, x]) => {
+    g.appendChild(node("text", { x, y: barY - 10, fill: css("--ink-soft"), "font-size": 11.5,
+      "font-family": "IBM Plex Sans, sans-serif" }, name));
+    g.appendChild(node("text", { x, y: barY + barH + 18, fill: css("--ink"), "font-size": 12.5,
+      "font-family": "IBM Plex Mono, monospace" },
+      `${fmt(value, 3)} Wh · ${(value / total * 100).toFixed(0)}%`));
+  });
+  el("chart-split").appendChild(g);
+})();
+
+/* energy per token by task */
+(function () {
+  const data = series.tasks;
+  if (!data.length) return;
+  const W = 360, rowH = 32, H = data.length * rowH + 8, L = 96;
+  const g = svg(W, H, "Facility energy per 1000 tokens by task class");
+  const max = Math.max(...data.map(d => d.facility_wh_per_1k)) * 1.3;
+  data.forEach((d, i) => {
+    const y = i * rowH + 8;
+    g.appendChild(node("text", { x: 0, y: y + 11, fill: css("--ink"), "font-size": 12,
+      "font-family": "IBM Plex Sans, sans-serif" }, d.task));
+    const w = (W - L - 10) * (d.facility_wh_per_1k / max);
+    g.appendChild(node("rect", { x: L, y, width: Math.max(w, 1), height: 14, rx: 3,
+      fill: css("--simulated"), "fill-opacity": .82 }));
+    g.appendChild(node("text", { x: L, y: y + 26, fill: css("--ink-dim"), "font-size": 10.5,
+      "font-family": "IBM Plex Mono, monospace" },
+      `${fmt(d.facility_wh_per_1k, 4)} Wh · ${d.requests} req`));
+  });
+  el("chart-tasks").appendChild(g);
+})();
+
+/* findings */
+(function () {
+  const rows = D.efficiency.findings;
+  el("findings").innerHTML =
+    "<tr><th>Finding</th><th class='n'>Requests</th><th class='n'>Wasted Wh</th><th class='n'>Conf.</th><th>Recommendation</th></tr>"
+    + (rows.length ? rows.map(f => `<tr>
+        <td><span class="num dim">${esc(f.finding_id)}</span> ${esc(f.type.replace(/_/g, " "))}</td>
+        <td class="n num">${fmt(f.affected_requests, 0)}</td>
+        <td class="n num">${fmt(f.wasted_energy_wh, 3)}</td>
+        <td class="n num">${fmt(f.confidence, 2)}</td>
+        <td class="soft">${esc(f.recommendation)}</td></tr>`).join("")
+      : "<tr><td colspan='5' class='dim'>no waste patterns detected in this window</td></tr>");
+  el("findings-note").textContent = D.efficiency.note;
+})();
+
+/* queue */
+(function () {
+  const q = obs.queueing;
+  const rows = [
+    ["queue wait p95", q.queue_wait_p95_ms, q.queue_wait_p95_ms + q.service_p95_ms],
+    ["service p95", q.service_p95_ms, q.queue_wait_p95_ms + q.service_p95_ms],
+  ];
+  el("queue-bars").innerHTML = rows.map(([k, v, total]) =>
+    `<div class="row"><span>${k}</span>
+     <span class="track"><i style="width:${(v / (total || 1) * 100).toFixed(1)}%"></i></span>
+     <span class="num">${fmt(v, 0)} ms</span></div>`).join("")
+    + `<p class="dim" style="font-size:.76rem;margin:8px 0 0">
+       ${(q.queue_share_of_latency * 100).toFixed(0)}% of latency is queueing — that is the
+       part a wider batching window spends. Mean depth ${fmt(q.mean_queue_depth, 1)},
+       peak ${fmt(q.max_queue_depth, 0)}.</p>`;
+
+  const s = series.queue;
+  if (!s.length) return;
+  const W = 340, H = 90, T = 6, B = 14;
+  const g = svg(W, H, "Queue depth over the window");
+  const maxY = Math.max(1, ...s.map(p => p.depth));
+  const x = i => (W) * (s[i].t / (s[s.length - 1].t || 1));
+  const y = v => H - B - (H - B - T) * (v / maxY);
+  g.appendChild(node("polyline", {
+    points: s.map((p, i) => `${x(i).toFixed(1)},${y(p.depth).toFixed(1)}`).join(" "),
+    fill: "none", stroke: css("--derived"), "stroke-width": 1.5, "stroke-opacity": .9 }));
+  g.appendChild(node("text", { x: 0, y: 10, fill: css("--ink-dim"), "font-size": 10,
+    "font-family": "IBM Plex Mono, monospace" }, `queue depth, peak ${maxY}`));
+  el("chart-queue").appendChild(g);
+})();
+
+/* ---------- optimisation ---------- */
+(function () {
+  const plan = D.plan;
+  el("plan").innerHTML =
+    "<tr><th>#</th><th>Change</th><th class='n'>Δ at step</th><th class='n'>Cumulative</th><th class='n'>p95 after</th><th>Gate</th></tr>"
+    + (plan.steps.length ? plan.steps.map(s => `<tr>
+        <td class="num dim">${s.order}</td><td>${esc(s.change)}</td>
+        <td class="n num save">${fmt(s.energy_delta_pct_at_this_step, 1)}%</td>
+        <td class="n num">${fmt(s.cumulative_energy_delta_pct, 1)}%</td>
+        <td class="n num">${fmt(s.p95_after_ms, 0)} ms</td>
+        <td><span class="chip warn">${esc(s.approval_requirement)}</span></td></tr>`).join("")
+      : "<tr><td colspan='6' class='dim'>no admissible change found in this window</td></tr>")
+    + (plan.rejected.length ? plan.rejected.slice(0, 4).map(r => `<tr>
+        <td class="dim">—</td><td class="dim">${esc(r.candidate.name)}</td>
+        <td colspan="4" class="dim">rejected: ${esc(r.reasons[0] || "")}</td></tr>`).join("") : "");
+  el("plan-note").textContent =
+    `Plan effect ${fmt(plan.energy_delta_pct, 1)}%. Summing the same steps independently would `
+    + `have claimed ${fmt(plan.naive_sum_of_steps_pct, 1)}% — an error of `
+    + `${fmt(plan.interaction_error_pct, 1)} points. ${plan.note}.`;
+
+  const validation = plan.final_validation;
+  tiles(el("optimization-tiles"), [
+    { k: "Plan effect on energy", v: `${fmt(plan.energy_delta_pct, 1)}%`,
+      f: `${plan.steps.length} re-simulated step(s)`,
+      color: plan.energy_delta_pct < 0 ? css("--measured") : css("--ink") },
+    { k: "Final-state validation", v: validation.passed ? "passed" : "FAILED",
+      f: Object.keys(validation.checks).join(", "),
+      color: validation.passed ? css("--measured") : css("--alert") },
+    { k: "Changes executed", v: "0", f: "approval is a human action" },
+  ]);
+})();
+
+(function () {
+  const f = D.frontier;
+  el("frontier").innerHTML =
+    "<tr><th>Configuration</th><th class='n'>Wh/1k</th><th class='n'>p95</th><th class='n'>Quality</th><th class='n'></th></tr>"
+    + f.candidates.map(c => `<tr>
+        <td>${esc(c.name)}</td>
+        <td class="n num">${fmt(c.energy_wh_per_1k_tokens, 4)}</td>
+        <td class="n num">${fmt(c.p95_latency_ms, 0)} ms</td>
+        <td class="n num">${c.quality === null ? "unknown" : fmt(c.quality, 3)}</td>
+        <td class="n"><span class="chip ${c.admissible ? "ok" : "bad"}">${c.admissible ? "admissible" : "excluded"}</span></td>
+      </tr>`).join("");
+  el("frontier-note").innerHTML =
+    `<b>${esc(f.recommendation || "none")}</b> — ${esc(f.recommendation_note)}<br>`
+    + Object.entries(f.inadmissible).map(([k, v]) => `${esc(k)}: ${esc(v[0])}`).join("<br>");
+})();
+
+(function () {
+  const na = D.no_action;
+  el("noaction").innerHTML =
+    "<tr><th>Dimension</th><th class='n'>Now</th><th class='n'>Projected</th><th class='n'>Limit</th><th class='n'></th></tr>"
+    + na.dimensions.map(d => {
+      const state = d.breach_expected ? ["bad", "breach expected"]
+        : d.breach_possible ? ["warn", "breach possible"] : ["ok", "within limit"];
+      return `<tr><td>${esc(d.name)}</td>
+        <td class="n num">${fmt(d.current, 1)}</td>
+        <td class="n num">${fmt(d.projected, 1)} <span class="dim">(${fmt(d.change_pct, 1)}%)</span></td>
+        <td class="n num dim">${d.limit ? fmt(d.limit, 0) : "—"}</td>
+        <td class="n"><span class="chip ${state[0]}">${state[1]}</span></td></tr>`;
+    }).join("");
+  el("noaction-verdict").textContent = `${na.verdict}. Thermal: ${na.thermal_state}.`;
+})();
+
+/* ---------- security ---------- */
+(function () {
+  const gate = D.security_gate.proposals;
+  el("gate").innerHTML = gate.length ? gate.map(g => `<article class="item">
+      <h3>${esc(g.recommendation)}</h3>
+      <div class="meta">
+        <span>energy <b class="num ${g.energy_wh < 0 ? "save" : ""}">${fmt(g.energy_wh, 3)} Wh</b></span>
+        <span>security <b>${esc(g.security)}</b></span>
+        <span>outcome <b>${esc(g.state.replace(/_/g, " "))}</b></span>
+      </div>
+      <ul>${g.evidence.map(e => `<li>${esc(e)}</li>`).join("")}</ul>
+    </article>`).join("")
+    : `<p class="dim">No proposals in this window.</p>`;
+
+  const audit = D.audit;
+  tiles(el("security-tiles"), [
+    { k: "Audit chain", v: audit.chain_valid ? "valid" : "BROKEN",
+      f: `${audit.entries} entries · policy ${audit.policy_version}`,
+      color: audit.chain_valid ? css("--measured") : css("--alert") },
+    { k: "Blocked proposals", v: String(gate.filter(g => g.state.includes("block")).length),
+      f: "policy decides admissibility, not energy" },
+    { k: "Forged telemetry", v: D.ingest.forged_record_accepted ? "ACCEPTED" : "rejected",
+      f: esc(D.ingest.forged_record_reason),
+      color: D.ingest.forged_record_accepted ? css("--alert") : css("--measured") },
+    { k: "Tenant isolation", v: "enforced", f: "cross-tenant reads denied by policy" },
+  ]);
+})();
+
+(function () {
+  const a = D.anomalies, rca = a.root_cause;
+  el("rca-statement").innerHTML = `<b>${esc(rca.statement)}</b>
+    <br><span class="dim" style="font-size:.78rem">${esc(rca.method)}</span>`;
+  el("detections").innerHTML =
+    "<tr><th>Metric</th><th class='n'>Observed</th><th class='n'>Baseline</th><th class='n'>Robust z</th><th>Method</th><th class='n'></th></tr>"
+    + a.detections.detections.map(d => `<tr>
+        <td>${esc(d.metric.replace(/_/g, " "))}</td>
+        <td class="n num">${fmt(d.observed, 4)}</td>
+        <td class="n num dim">${fmt(d.baseline, 4)}</td>
+        <td class="n num">${fmt(d.score, 1)}</td>
+        <td class="dim" style="font-size:.76rem">${esc(d.method.estimator)}</td>
+        <td class="n"><span class="chip ${d.severity === "page" ? "bad" : d.severity === "watch" ? "warn" : ""}">${esc(d.severity)}</span></td>
+      </tr>`).join("");
+
+  if (rca.primary_cause) {
+    el("anomaly-slot").innerHTML = `<div class="card alert" style="margin-top:12px">
+      <h2>Energy anomaly — ${esc(a.comparison_window)}</h2>
+      <p class="soft" style="font-size:.84rem;margin:6px 0 0">${esc(rca.statement)}</p>
+      <ol>${[rca.primary_cause].concat(rca.contributing_factors).map(c =>
+        `<li><b>${esc(c.cause.replace(/_/g, " "))}</b> (${fmt(c.confidence, 2)}) — validate with
+         ${esc(c.validation_required)}</li>`).join("")}</ol>
+    </div>`;
+  }
+})();
+
+/* ---------- forecast ---------- */
+(function () {
+  const fc = D.forecast.energy;
+  const host = el("chart-forecast");
+  if (!fc.points.length) { host.innerHTML = `<p class="dim">${esc(fc.warning || "no forecast")}</p>`; return; }
+  const W = 720, H = 220, L = 52, R = 10, T = 12, B = 24;
+  const g = svg(W, H, "Facility power forecast with prediction interval");
+  const hist = series.power.map(p => ({ t: p.t, v: p.gpu + p.host + p.cooling }));
+  const step = fc.step_s;
+  const lastT = hist.length ? hist[hist.length - 1].t : 0;
+  const pts = fc.points.map(p => ({ t: lastT + p.horizon_steps * step, ...p }));
+  const all = hist.map(h => h.v).concat(pts.map(p => p.upper), pts.map(p => p.lower));
+  const minY = Math.min(...all) * .94, maxY = Math.max(...all) * 1.06;
+  const tEnd = pts[pts.length - 1].t;
+  const x = t => L + (W - L - R) * ((t - hist[0].t) / (tEnd - hist[0].t));
+  const y = v => H - B - (H - B - T) * ((v - minY) / (maxY - minY));
+  [minY, (minY + maxY) / 2, maxY].forEach(v => {
+    g.appendChild(node("line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: css("--grid") }));
+    g.appendChild(node("text", { x: L - 8, y: y(v) + 4, "text-anchor": "end", fill: css("--ink-dim"),
+      "font-size": 10.5, "font-family": "IBM Plex Mono, monospace" }, (v / 1000).toFixed(2) + " kW"));
+  });
+  g.appendChild(node("polygon", {
+    points: pts.map(p => `${x(p.t).toFixed(1)},${y(p.upper).toFixed(1)}`).join(" ") + " "
+      + pts.slice().reverse().map(p => `${x(p.t).toFixed(1)},${y(p.lower).toFixed(1)}`).join(" "),
+    fill: css("--simulated"), "fill-opacity": .18 }));
+  g.appendChild(node("polyline", {
+    points: hist.map(h => `${x(h.t).toFixed(1)},${y(h.v).toFixed(1)}`).join(" "),
+    fill: "none", stroke: css("--derived"), "stroke-width": 1.8 }));
+  g.appendChild(node("polyline", {
+    points: [`${x(lastT).toFixed(1)},${y(hist[hist.length - 1].v).toFixed(1)}`]
+      .concat(pts.map(p => `${x(p.t).toFixed(1)},${y(p.value).toFixed(1)}`)).join(" "),
+    fill: "none", stroke: css("--simulated"), "stroke-width": 2, "stroke-dasharray": "5 4" }));
+  g.appendChild(node("line", { x1: x(lastT), x2: x(lastT), y1: T, y2: H - B,
+    stroke: css("--ink-dim"), "stroke-dasharray": "2 3" }));
+  g.appendChild(node("text", { x: x(lastT), y: H - 6, "text-anchor": "middle", fill: css("--ink-dim"),
+    "font-size": 10.5, "font-family": "IBM Plex Mono, monospace" }, "now"));
+  host.appendChild(g);
+
+  el("breach").innerHTML = D.forecast.breach_probabilities.length
+    ? D.forecast.breach_probabilities.map(b => `<div class="item">
+        <h3>${esc(b.dimension)} budget</h3>
+        <div class="meta"><span><b class="num">${(b.probability * 100).toFixed(0)}%</b> chance of
+          exceeding <b class="num">${fmt(b.limit, 0)}</b> within ${fmt(b.horizon_s / 60, 0)} min</span>
+          <span class="chip ${b.probability > .5 ? "bad" : b.probability > .1 ? "warn" : "ok"}">${esc(b.severity)}</span></div>
+        <ul><li>${esc(b.method)}</li></ul></div>`).join("")
+    : `<p class="dim">No budget limits configured for forecasting.</p>`;
+
+  const targets = [["energy", "facility power (W)"], ["tokens", "tokens/s"],
+                   ["gpu_demand", "GPU demand"], ["cooling_load", "cooling power (W)"]];
+  el("forecast-table").innerHTML =
+    "<tr><th>Target</th><th class='n'>Horizon</th><th class='n'>80% interval</th></tr>"
+    + targets.map(([k, label]) => {
+      const f = D.forecast[k];
+      if (!f.points.length) return `<tr><td>${label}</td><td colspan="2" class="dim">${esc(f.warning || "unavailable")}</td></tr>`;
+      const p = f.points[f.points.length - 1];
+      return `<tr><td>${label}</td><td class="n num">${fmt(p.value, 1)}</td>
+        <td class="n num dim">${fmt(p.lower, 1)}–${fmt(p.upper, 1)}</td></tr>`;
+    }).join("");
+})();
+
+/* ---------- footer ---------- */
+(function () {
+  const prov = D.provenance;
+  el("foot").innerHTML = `
+    <p><b>${esc(prov.declaration)}</b></p>
+    <p>Weakest provenance across attributed components: <b>${esc(prov.weakest)}</b> ·
+       measured ${(prov.measured_fraction * 100).toFixed(0)}% ·
+       calibrated ${(prov.calibrated_fraction * 100).toFixed(0)}% ·
+       benchmark ${esc(D.benchmark.status)} · experiments ${esc(D.experiments.status)}</p>
+    <p>Reproduce this page: <code>${esc(run.reproduction_command)} &amp;&amp; python watts.py dashboard</code></p>`;
+})();
+</script>
+</body>
+</html>

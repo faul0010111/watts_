@@ -1,0 +1,135 @@
+{
+  "experiment": "exp06_thermal_throttling",
+  "manifest": {
+    "experiment_id": "exp06_thermal_throttling",
+    "version": "1.0",
+    "schema_version": "2",
+    "seed": 11,
+    "configuration": {
+      "rps": 3.0,
+      "duration_s": 600,
+      "cooling_states": [
+        "design point",
+        "reduced airflow",
+        "fouled coils",
+        "one unit down",
+        "two units down"
+      ]
+    },
+    "inputs": {
+      "rows": 5
+    },
+    "method": "single-factor sweep on the WATTS digital twin, repeated across seeds",
+    "metrics": [
+      "cooling",
+      "max_gpu_temp_c",
+      "mean_clock_factor",
+      "throttled_fraction",
+      "tokens_per_s",
+      "wh_per_1k_tokens",
+      "facility_wh_per_1k_tokens",
+      "cooling_energy_wh",
+      "pue",
+      "facility_energy_vs_design_pct"
+    ],
+    "outputs": [
+      "experiments/results/exp06_thermal_throttling.json",
+      "experiments/results/exp06_thermal_throttling.md"
+    ],
+    "provenance": "simulated",
+    "reproduce": "make experiment EXP=exp06_thermal_throttling"
+  },
+  "title": "Experiment 06 - Thermal throttling and efficiency",
+  "research_question": "How does temperature influence computational efficiency, and what does cooling cost?",
+  "provenance": "simulated",
+  "disclaimer": "Produced by the WATTS digital twin. Valid as a statement about the model under the stated configuration, not as a hardware measurement.",
+  "generated_at": "2026-09-18T10:15:06Z",
+  "environment": {
+    "python": "3.12.3",
+    "platform": "Linux-6.18.44-fc-v36-x86_64-with-glibc2.39"
+  },
+  "config": {
+    "rps": 3.0,
+    "duration_s": 600,
+    "cooling_states": [
+      "design point",
+      "reduced airflow",
+      "fouled coils",
+      "one unit down",
+      "two units down"
+    ]
+  },
+  "rows": [
+    {
+      "cooling": "design point (1.00 eff, 22 C inlet)",
+      "max_gpu_temp_c": 46.81650362303943,
+      "mean_clock_factor": 1.0,
+      "throttled_fraction": 0.0,
+      "tokens_per_s": 7487.363815699678,
+      "wh_per_1k_tokens": 0.02253938510852015,
+      "facility_wh_per_1k_tokens": 0.047749894537080194,
+      "cooling_energy_wh": 36.54498757698008,
+      "pue": 1.4033964813915434,
+      "gpu_energy_vs_design_pct": 0.0,
+      "facility_energy_vs_design_pct": 0.0
+    },
+    {
+      "cooling": "reduced airflow (0.80 eff, 24 C inlet)",
+      "max_gpu_temp_c": 55.56279434097659,
+      "mean_clock_factor": 1.0,
+      "throttled_fraction": 0.0,
+      "tokens_per_s": 7487.363815699678,
+      "wh_per_1k_tokens": 0.02316164155911415,
+      "facility_wh_per_1k_tokens": 0.051049414098529915,
+      "cooling_energy_wh": 48.500362202149894,
+      "pue": 1.4720596063566518,
+      "gpu_energy_vs_design_pct": 2.7607516691250864,
+      "facility_energy_vs_design_pct": 6.910003872128928
+    },
+    {
+      "cooling": "fouled coils (0.60 eff, 27 C inlet)",
+      "max_gpu_temp_c": 70.53762971437278,
+      "mean_clock_factor": 1.0,
+      "throttled_fraction": 0.0,
+      "tokens_per_s": 7487.363815699678,
+      "wh_per_1k_tokens": 0.024180178296361515,
+      "facility_wh_per_1k_tokens": 0.05696546511373849,
+      "cooling_energy_wh": 70.39527186361387,
+      "pue": 1.5934094334639683,
+      "gpu_energy_vs_design_pct": 7.279671472586564,
+      "facility_energy_vs_design_pct": 19.299666870472233
+    },
+    {
+      "cooling": "one unit down (0.45 eff, 30 C inlet)",
+      "max_gpu_temp_c": 83.32062225056711,
+      "mean_clock_factor": 0.8373101178512187,
+      "throttled_fraction": 0.5305166600025175,
+      "tokens_per_s": 7428.458218201085,
+      "wh_per_1k_tokens": 0.02412033707624155,
+      "facility_wh_per_1k_tokens": 0.06244611309534261,
+      "cooling_energy_wh": 96.72373285119028,
+      "pue": 1.7659115269066064,
+      "gpu_energy_vs_design_pct": 7.014175231975525,
+      "facility_energy_vs_design_pct": 30.77748904104923
+    },
+    {
+      "cooling": "two units down (0.35 eff, 33 C inlet)",
+      "max_gpu_temp_c": 100.9322495975586,
+      "mean_clock_factor": 0.7356647602443132,
+      "throttled_fraction": 0.7122314415615524,
+      "tokens_per_s": 7425.444489257712,
+      "wh_per_1k_tokens": 0.02423571060645645,
+      "facility_wh_per_1k_tokens": 0.0689920590103832,
+      "cooling_energy_wh": 126.95054708684818,
+      "pue": 1.9590161494292129,
+      "gpu_energy_vs_design_pct": 7.52605046574705,
+      "facility_energy_vs_design_pct": 44.48630657562479
+    }
+  ],
+  "findings": [
+    "From the design point to the worst case, peak GPU temperature went from 46.8 C to 100.9 C and the mean clock factor from 1.000 to 0.736.",
+    "PUE moved 1.403 -> 1.959. Facility energy per 1k tokens rose +44% while GPU energy per 1k tokens moved +8%: most of the damage is in the facility, not on the die, which is why a GPU-only view of efficiency misses it.",
+    "Throughput fell to 7425 tok/s from 7487 tok/s at identical offered load, so the queue absorbs the difference and latency rises.",
+    "Detection rule: temperature up, clock down, cooling draw up, throughput flat or falling is a facility problem, not a workload problem. WATTS' anomaly engine ranks it as thermal throttling on exactly this signature."
+  ]
+}
