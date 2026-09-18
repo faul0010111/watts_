@@ -1,0 +1,62 @@
+{
+  "_readme": "Declared defaults for the WATTS simulator. NOT measurements of any vendor model. Replace prefill_weight/decode_weight with calibrated values (experiments/exp01) before quoting absolute energy numbers.",
+  "schema_version": 1,
+  "profiles": [
+    {
+      "name": "watts-sim-small",
+      "family": "sim",
+      "params_b": 3,
+      "prefill_weight": 1.0,
+      "decode_weight": 9.0,
+      "max_context": 16384,
+      "quality_tier": 2,
+      "approved_for_sensitive": true,
+      "source": "declared-default",
+      "calibrated_on": "",
+      "notes": "Stand-in for a small instruct model served locally.",
+      "generative": true
+    },
+    {
+      "name": "watts-sim-medium",
+      "family": "sim",
+      "params_b": 14,
+      "prefill_weight": 4.2,
+      "decode_weight": 38.0,
+      "max_context": 32768,
+      "quality_tier": 3,
+      "approved_for_sensitive": true,
+      "source": "declared-default",
+      "calibrated_on": "",
+      "notes": "Stand-in for a mid-size model.",
+      "generative": true
+    },
+    {
+      "name": "watts-sim-large",
+      "family": "sim",
+      "params_b": 70,
+      "prefill_weight": 19.0,
+      "decode_weight": 170.0,
+      "max_context": 131072,
+      "quality_tier": 5,
+      "approved_for_sensitive": false,
+      "source": "declared-default",
+      "calibrated_on": "",
+      "notes": "Stand-in for a large reasoning model. Not approved for sensitive tenants in the demo policy set.",
+      "generative": true
+    },
+    {
+      "name": "watts-sim-embed",
+      "family": "sim",
+      "params_b": 0.3,
+      "prefill_weight": 0.35,
+      "decode_weight": 0.35,
+      "max_context": 8192,
+      "quality_tier": 1,
+      "approved_for_sensitive": true,
+      "source": "declared-default",
+      "calibrated_on": "",
+      "notes": "Embedding model: no autoregressive decode, weights are symmetric.",
+      "generative": false
+    }
+  ]
+}

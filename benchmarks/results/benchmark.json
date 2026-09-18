@@ -1,0 +1,1036 @@
+{
+  "benchmark": "WATTS Benchmark",
+  "status": "available",
+  "provenance": "simulated",
+  "admissible_strategies": [
+    "combined"
+  ],
+  "inadmissible_strategies": {
+    "baseline": [
+      "p95 latency 48868 ms > 15000 ms"
+    ],
+    "dynamic_batching": [
+      "p95 latency 36441 ms > 15000 ms"
+    ],
+    "token_optimization": [
+      "p95 latency 24568 ms > 15000 ms"
+    ],
+    "model_routing": [
+      "p95 latency 17977 ms > 15000 ms"
+    ]
+  },
+  "quality_floor": 0.9,
+  "disclaimer": "These figures come from the WATTS digital twin. They characterise the model's response to each strategy and must not be quoted as hardware measurements. Run the same harness against a metered GPU to produce measured results.",
+  "environment": {
+    "python": "3.12.3",
+    "platform": "Linux-6.18.44-fc-v36-x86_64-with-glibc2.39",
+    "wall_clock_s": 5.69
+  },
+  "workload": {
+    "duration_s": 900.0,
+    "base_rps": 2.0,
+    "seeds": [
+      11,
+      12,
+      13
+    ],
+    "dt_s": 0.05,
+    "task_mix": [
+      {
+        "task": "classification",
+        "share": 0.4,
+        "min_quality_tier": 1
+      },
+      {
+        "task": "extraction",
+        "share": 0.25,
+        "min_quality_tier": 2
+      },
+      {
+        "task": "summarization",
+        "share": 0.2,
+        "min_quality_tier": 3
+      },
+      {
+        "task": "reasoning",
+        "share": 0.15,
+        "min_quality_tier": 5
+      }
+    ]
+  },
+  "slo": {
+    "p95_latency_ms": 15000,
+    "availability": 0.98,
+    "max_error_rate": 0.02,
+    "max_wh_per_successful_request": 1.0
+  },
+  "rows": [
+    {
+      "strategy": "baseline",
+      "facility_kwh": 0.7316955846391413,
+      "wh_per_1k_tokens": 0.08413464725294233,
+      "wh_per_request": 0.21035000639280646,
+      "wh_per_successful_request": 0.2124855394526319,
+      "tokens_per_s": 4814.822580646704,
+      "p95_latency_ms": 48868.47004327165,
+      "mean_batch_size": 3.3819095477386933,
+      "pue": 1.3956418060414582,
+      "error_rate": 0.01005025125628145,
+      "max_gpu_temp_c": 51.97020319434838,
+      "throttled_fraction": 0.0,
+      "slo_met": false,
+      "throughput_requests_s": 1.9258064516135205,
+      "queue_share_of_latency": 0.4768288295588773,
+      "quality": 0.96,
+      "quality_metric": "task_success_rate",
+      "quality_state": "meets floor",
+      "security_compliant": true,
+      "security_reason": "all 1 model(s) used are on the allowlist",
+      "admissible": false,
+      "energy_per_token_vs_baseline_pct": 0.0,
+      "p95_latency_vs_baseline_pct": 0.0
+    },
+    {
+      "strategy": "dynamic_batching",
+      "facility_kwh": 0.7338439402835019,
+      "wh_per_1k_tokens": 0.08414134618596145,
+      "wh_per_request": 0.21044295346073108,
+      "wh_per_successful_request": 0.21257822581828079,
+      "tokens_per_s": 4819.25591398004,
+      "p95_latency_ms": 36440.57960440676,
+      "mean_batch_size": 3.689732142857143,
+      "pue": 1.3966767113230423,
+      "error_rate": 0.010044642857142905,
+      "max_gpu_temp_c": 54.81197905067767,
+      "throttled_fraction": 0.0,
+      "slo_met": false,
+      "throughput_requests_s": 1.9268817204307251,
+      "queue_share_of_latency": 0.34160761390736444,
+      "quality": 0.96,
+      "quality_metric": "task_success_rate",
+      "quality_state": "meets floor",
+      "security_compliant": true,
+      "security_reason": "all 1 model(s) used are on the allowlist",
+      "admissible": false,
+      "energy_per_token_vs_baseline_pct": 0.007962157372550762,
+      "p95_latency_vs_baseline_pct": -25.431306582465833
+    },
+    {
+      "strategy": "token_optimization",
+      "facility_kwh": 0.6702366754951778,
+      "wh_per_1k_tokens": 0.07300341150536015,
+      "wh_per_request": 0.1800703288869518,
+      "wh_per_successful_request": 0.18189742354307645,
+      "tokens_per_s": 4812.619086505943,
+      "p95_latency_ms": 24567.748248639677,
+      "mean_batch_size": 2.0775669642857144,
+      "pue": 1.4051123749665446,
+      "error_rate": 0.010044642857142905,
+      "max_gpu_temp_c": 52.40762054012299,
+      "throttled_fraction": 0.0,
+      "slo_met": false,
+      "throughput_requests_s": 1.9511132886935174,
+      "queue_share_of_latency": 0.348332608153825,
+      "quality": 0.94,
+      "quality_metric": "task_success_rate",
+      "quality_state": "meets floor",
+      "security_compliant": true,
+      "security_reason": "all 1 model(s) used are on the allowlist",
+      "admissible": false,
+      "energy_per_token_vs_baseline_pct": -13.230263762938524,
+      "p95_latency_vs_baseline_pct": -49.72679065482175
+    },
+    {
+      "strategy": "model_routing",
+      "facility_kwh": 0.5342991399053871,
+      "wh_per_1k_tokens": 0.04041350896097976,
+      "wh_per_request": 0.10107680196444581,
+      "wh_per_successful_request": 0.10210238394604673,
+      "tokens_per_s": 4953.479221929004,
+      "p95_latency_ms": 17976.54288669268,
+      "mean_batch_size": 1.8046875,
+      "pue": 1.4388803803620194,
+      "error_rate": 0.010044642857142905,
+      "max_gpu_temp_c": 47.297900240077716,
+      "throttled_fraction": 0.0,
+      "slo_met": false,
+      "throughput_requests_s": 1.9805481874453414,
+      "queue_share_of_latency": 0.42061230952150597,
+      "quality": 0.92,
+      "quality_metric": "task_success_rate",
+      "quality_state": "meets floor",
+      "security_compliant": true,
+      "security_reason": "all 3 model(s) used are on the allowlist",
+      "admissible": false,
+      "energy_per_token_vs_baseline_pct": -51.96567611500096,
+      "p95_latency_vs_baseline_pct": -63.21443484771477
+    },
+    {
+      "strategy": "combined",
+      "facility_kwh": 0.5069467732427534,
+      "wh_per_1k_tokens": 0.034188676893014684,
+      "wh_per_request": 0.08432984384411767,
+      "wh_per_successful_request": 0.08518550178616621,
+      "tokens_per_s": 4878.483527400638,
+      "p95_latency_ms": 14793.738649050825,
+      "mean_batch_size": 1.37109375,
+      "pue": 1.4479070514601105,
+      "error_rate": 0.010044642857142905,
+      "max_gpu_temp_c": 47.16036276794823,
+      "throttled_fraction": 0.0,
+      "slo_met": true,
+      "throughput_requests_s": 1.9778157938309657,
+      "queue_share_of_latency": 0.4053634657089483,
+      "quality": 0.92,
+      "quality_metric": "task_success_rate",
+      "quality_state": "meets floor",
+      "security_compliant": true,
+      "security_reason": "all 3 model(s) used are on the allowlist",
+      "admissible": true,
+      "energy_per_token_vs_baseline_pct": -59.36433085619308,
+      "p95_latency_vs_baseline_pct": -69.72743645145553
+    }
+  ],
+  "variability_wh_per_1k_tokens": {
+    "baseline": {
+      "mean": 0.08399609617036859,
+      "stdev": 0.0003894452123075242,
+      "runs": 3
+    },
+    "dynamic_batching": {
+      "mean": 0.08386342570089923,
+      "stdev": 0.0005103197857990589,
+      "runs": 3
+    },
+    "token_optimization": {
+      "mean": 0.0721877404955763,
+      "stdev": 0.0006182695994839632,
+      "runs": 3
+    },
+    "model_routing": {
+      "mean": 0.03965438628175186,
+      "stdev": 0.0005924904741782563,
+      "runs": 3
+    },
+    "combined": {
+      "mean": 0.03345189434996064,
+      "stdev": 0.0005321671662731664,
+      "runs": 3
+    }
+  },
+  "details": [
+    {
+      "strategy": "baseline",
+      "description": "Opportunistic batching up to 4, single large model, no caching",
+      "summary": {
+        "provenance": "simulated",
+        "simulated": true,
+        "duration_s": 929.9999999997019,
+        "requests": 1791,
+        "successful_requests": 1773,
+        "error_rate": 0.01005025125628145,
+        "cache_hits": 0,
+        "total_tokens": 4477785,
+        "tokens_per_s": 4814.822580646704,
+        "output_tokens_per_s": 416.5333333334668,
+        "gpu_energy_wh": 380.4317590372004,
+        "it_energy_wh": 524.2717590371508,
+        "cooling_energy_wh": 128.89049226868227,
+        "facility_energy_wh": 731.6955846391413,
+        "pue": 1.3956418060414582,
+        "wh_per_1k_tokens": 0.08413464725294233,
+        "facility_wh_per_1k_tokens": 0.16340569827250334,
+        "wh_per_request": 0.21035000639280646,
+        "wh_per_successful_request": 0.2124855394526319,
+        "p50_latency_ms": 22941.107133927682,
+        "p95_latency_ms": 48868.47004327165,
+        "p99_latency_ms": 64483.02556472795,
+        "mean_batch_size": 3.3819095477386933,
+        "max_gpu_temp_c": 51.97020319434838,
+        "mean_clock_factor": 1.0,
+        "throttled_fraction": 0.0,
+        "exceeded_critical_temp": false,
+        "queue_wait_p50_ms": 9309.70333656029,
+        "queue_wait_p95_ms": 32230.6561599832,
+        "queue_wait_p99_ms": 49267.517448526516,
+        "service_p50_ms": 12670.595188559268,
+        "service_p95_ms": 22289.404757001656,
+        "mean_queue_wait_ms": 11781.182911374837,
+        "mean_service_ms": 12926.179943077179,
+        "queue_share_of_latency": 0.4768288295588773,
+        "mean_queue_depth": 22.67329713456266,
+        "max_queue_depth": 50,
+        "device_utilization": 0.9723670770388689,
+        "throughput_requests_s": 1.9258064516135205
+      },
+      "slo": {
+        "slo": "benchmark-slo",
+        "p95_latency_ms": 48868.47004327165,
+        "availability": 0.9899497487437185,
+        "error_rate": 0.01005025125628145,
+        "wh_per_successful_request": 0.2124855394526319,
+        "latency_headroom_ms": -33868.47004327165,
+        "violations": [
+          "p95 latency 48868 ms > 15000 ms"
+        ],
+        "reliability_violations": [
+          "p95 latency 48868 ms > 15000 ms"
+        ],
+        "met": false,
+        "samples": 1791
+      },
+      "efficiency": {
+        "metrics": {
+          "requests": 1791,
+          "successful_tasks": 1773,
+          "total_tokens": 4477785,
+          "energy_wh": 376.73686144951637,
+          "tokens_per_request": 2500.1591289782245,
+          "tokens_per_successful_task": 2525.5414551607446,
+          "wh_per_token": 8.413464725294233e-05,
+          "wh_per_successful_task": 0.2124855394526319,
+          "wh_per_useful_output_token": 0.0009817784463762612,
+          "wh_per_useful_task": 1.4716283650371733,
+          "wh_per_workload_window": 376.73686144951637,
+          "wh_per_hour": 1476.5952109076582,
+          "wh_per_1k_tokens": 0.08413464725294233,
+          "useful_tasks": 256,
+          "failed_requests": 18,
+          "useful_work_fraction": 0.9899497487437185,
+          "window_s": 918.499999999712,
+          "provenance": "simulated"
+        },
+        "findings": [
+          {
+            "finding_id": "WF-221a1ab998",
+            "type": "repeated_context",
+            "summary": "The same context prefix is re-processed across requests; prefix caching is not in use",
+            "affected_requests": 1180,
+            "wasted_tokens": 2159388,
+            "wasted_energy_wh": 75.56040736476099,
+            "evidence": [
+              "prefix 377e05289cfa37cd re-sent 741x",
+              "prefix 1ec0b9ba20cc9262 re-sent 439x",
+              "energy estimate assumes prefix caching removes prefill only, not decode"
+            ],
+            "confidence": 0.6,
+            "provenance": "derived",
+            "recommendation": "enable prefix/KV caching for the shared context"
+          },
+          {
+            "finding_id": "WF-d44e7d28e5",
+            "type": "duplicate_call",
+            "summary": "Identical prompts re-sent within the dedup window without a cache hit",
+            "affected_requests": 133,
+            "wasted_tokens": 352473,
+            "wasted_energy_wh": 29.463361526336016,
+            "evidence": [
+              "prompt 1e1297cd852c1360 sent 2x to watts-sim-large for tenant tenant-a",
+              "prompt 880c232210659f6f sent 2x to watts-sim-large for tenant tenant-a",
+              "prompt b352b380fc28ae9e sent 2x to watts-sim-large for tenant tenant-a",
+              "a response cache keyed on the prompt hash removes this work entirely"
+            ],
+            "confidence": 0.9,
+            "provenance": "derived",
+            "recommendation": "enable a per-tenant response cache keyed on the prompt hash"
+          },
+          {
+            "finding_id": "WF-dbdb2b467d",
+            "type": "failed_work",
+            "summary": "Energy spent on requests that did not produce a usable result",
+            "affected_requests": 18,
+            "wasted_tokens": 43517,
+            "wasted_energy_wh": 3.4060374602091277,
+            "evidence": [
+              "18 of 1791 requests failed",
+              "failure energy is pure waste: fix the error rate before tuning the batch size"
+            ],
+            "confidence": 0.95,
+            "provenance": "derived",
+            "recommendation": "fix the error rate before tuning anything else: failed work is pure waste"
+          },
+          {
+            "finding_id": "WF-3097e11376",
+            "type": "overlong_output",
+            "summary": "Outputs run well past the typical length for the task; decode dominates energy",
+            "affected_requests": 4,
+            "wasted_tokens": 3700,
+            "wasted_energy_wh": 0.8441352115373437,
+            "evidence": [
+              "task 'classification': median output 24, 1 requests above 48",
+              "task 'reasoning': median output 680, 2 requests above 1360",
+              "task 'summarization': median output 310, 1 requests above 620",
+              "set max_tokens per task class and measure the quality impact first"
+            ],
+            "confidence": 0.55,
+            "provenance": "derived",
+            "recommendation": "set a per-task output cap"
+          },
+          {
+            "finding_id": "WF-db6dfc02b5",
+            "type": "underused_context_window",
+            "summary": "Most requests use a fraction of the context window they were allocated",
+            "affected_requests": 1791,
+            "wasted_tokens": 0,
+            "wasted_energy_wh": 0.0,
+            "evidence": [
+              "1791 of 1791 requests below 10% window use",
+              "a smaller-window deployment of the same model frees KV cache memory and raises batch size"
+            ],
+            "confidence": 0.4,
+            "provenance": "derived",
+            "recommendation": "deploy a shorter-context variant or raise the batch size"
+          }
+        ],
+        "wasted_energy_wh_upper_bound": 109.27394156284348,
+        "note": "findings may overlap; do not sum them as independent savings"
+      },
+      "warnings": [
+        "SLO not met: p95 latency 48868 ms > 15000 ms"
+      ]
+    },
+    {
+      "strategy": "dynamic_batching",
+      "description": "Batch up to 16 requests within a 200 ms window",
+      "summary": {
+        "provenance": "simulated",
+        "simulated": true,
+        "duration_s": 929.9999999997019,
+        "requests": 1792,
+        "successful_requests": 1774,
+        "error_rate": 0.010044642857142905,
+        "cache_hits": 0,
+        "total_tokens": 4481908,
+        "tokens_per_s": 4819.25591398004,
+        "output_tokens_per_s": 416.82795698938094,
+        "gpu_energy_wh": 381.58147680576315,
+        "it_energy_wh": 525.4214768057147,
+        "cooling_energy_wh": 129.88913014448016,
+        "facility_energy_wh": 733.8439402835019,
+        "pue": 1.3966767113230423,
+        "wh_per_1k_tokens": 0.08414134618596145,
+        "facility_wh_per_1k_tokens": 0.1637347175094852,
+        "wh_per_request": 0.21044295346073108,
+        "wh_per_successful_request": 0.21257822581828079,
+        "p50_latency_ms": 19811.233345970886,
+        "p95_latency_ms": 36440.57960440676,
+        "p99_latency_ms": 43434.0620213062,
+        "mean_batch_size": 3.689732142857143,
+        "max_gpu_temp_c": 54.81197905067767,
+        "mean_clock_factor": 1.0,
+        "throttled_fraction": 0.0,
+        "exceeded_critical_temp": false,
+        "queue_wait_p50_ms": 6068.734613317474,
+        "queue_wait_p95_ms": 17153.479505829295,
+        "queue_wait_p99_ms": 21721.36577436504,
+        "service_p50_ms": 13240.461565121026,
+        "service_p95_ms": 23804.493723262905,
+        "mean_queue_wait_ms": 6967.726806209976,
+        "mean_service_ms": 13429.145284877113,
+        "queue_share_of_latency": 0.34160761390736444,
+        "mean_queue_depth": 13.377291543465406,
+        "max_queue_depth": 32,
+        "device_utilization": 0.9674748669426375,
+        "throughput_requests_s": 1.9268817204307251
+      },
+      "slo": {
+        "slo": "benchmark-slo",
+        "p95_latency_ms": 36440.57960440676,
+        "availability": 0.9899553571428571,
+        "error_rate": 0.010044642857142905,
+        "wh_per_successful_request": 0.21257822581828079,
+        "latency_headroom_ms": -21440.57960440676,
+        "violations": [
+          "p95 latency 36441 ms > 15000 ms"
+        ],
+        "reliability_violations": [
+          "p95 latency 36441 ms > 15000 ms"
+        ],
+        "met": false,
+        "samples": 1792
+      },
+      "efficiency": {
+        "metrics": {
+          "requests": 1792,
+          "successful_tasks": 1774,
+          "total_tokens": 4481908,
+          "energy_wh": 377.1137726016301,
+          "tokens_per_request": 2501.0647321428573,
+          "tokens_per_successful_task": 2526.4419391206316,
+          "wh_per_token": 8.414134618596145e-05,
+          "wh_per_successful_task": 0.21257822581828079,
+          "wh_per_useful_output_token": 0.0009820594438106737,
+          "wh_per_useful_task": 1.4731006742251176,
+          "wh_per_workload_window": 377.1137726016301,
+          "wh_per_hour": 1478.9580928877322,
+          "wh_per_1k_tokens": 0.08414134618596145,
+          "useful_tasks": 256,
+          "failed_requests": 18,
+          "useful_work_fraction": 0.9899553571428571,
+          "window_s": 917.9499999997124,
+          "provenance": "simulated"
+        },
+        "findings": [
+          {
+            "finding_id": "WF-221a1ab998",
+            "type": "repeated_context",
+            "summary": "The same context prefix is re-processed across requests; prefix caching is not in use",
+            "affected_requests": 1180,
+            "wasted_tokens": 2159388,
+            "wasted_energy_wh": 75.398399234238,
+            "evidence": [
+              "prefix 377e05289cfa37cd re-sent 741x",
+              "prefix 1ec0b9ba20cc9262 re-sent 439x",
+              "energy estimate assumes prefix caching removes prefill only, not decode"
+            ],
+            "confidence": 0.6,
+            "provenance": "derived",
+            "recommendation": "enable prefix/KV caching for the shared context"
+          },
+          {
+            "finding_id": "WF-bfe8115653",
+            "type": "duplicate_call",
+            "summary": "Identical prompts re-sent within the dedup window without a cache hit",
+            "affected_requests": 133,
+            "wasted_tokens": 340223,
+            "wasted_energy_wh": 27.54785045981991,
+            "evidence": [
+              "prompt 1e1297cd852c1360 sent 2x to watts-sim-large for tenant tenant-a",
+              "prompt 880c232210659f6f sent 2x to watts-sim-large for tenant tenant-a",
+              "prompt b352b380fc28ae9e sent 2x to watts-sim-large for tenant tenant-a",
+              "a response cache keyed on the prompt hash removes this work entirely"
+            ],
+            "confidence": 0.9,
+            "provenance": "derived",
+            "recommendation": "enable a per-tenant response cache keyed on the prompt hash"
+          },
+          {
+            "finding_id": "WF-dbdb2b467d",
+            "type": "failed_work",
+            "summary": "Energy spent on requests that did not produce a usable result",
+            "affected_requests": 18,
+            "wasted_tokens": 43517,
+            "wasted_energy_wh": 3.358870227042842,
+            "evidence": [
+              "18 of 1792 requests failed",
+              "failure energy is pure waste: fix the error rate before tuning the batch size"
+            ],
+            "confidence": 0.95,
+            "provenance": "derived",
+            "recommendation": "fix the error rate before tuning anything else: failed work is pure waste"
+          },
+          {
+            "finding_id": "WF-3097e11376",
+            "type": "overlong_output",
+            "summary": "Outputs run well past the typical length for the task; decode dominates energy",
+            "affected_requests": 4,
+            "wasted_tokens": 3700,
+            "wasted_energy_wh": 0.7728909743918084,
+            "evidence": [
+              "task 'classification': median output 24, 1 requests above 48",
+              "task 'reasoning': median output 680, 2 requests above 1360",
+              "task 'summarization': median output 310, 1 requests above 620",
+              "set max_tokens per task class and measure the quality impact first"
+            ],
+            "confidence": 0.55,
+            "provenance": "derived",
+            "recommendation": "set a per-task output cap"
+          },
+          {
+            "finding_id": "WF-dfacba83d0",
+            "type": "underused_context_window",
+            "summary": "Most requests use a fraction of the context window they were allocated",
+            "affected_requests": 1792,
+            "wasted_tokens": 0,
+            "wasted_energy_wh": 0.0,
+            "evidence": [
+              "1792 of 1792 requests below 10% window use",
+              "a smaller-window deployment of the same model frees KV cache memory and raises batch size"
+            ],
+            "confidence": 0.4,
+            "provenance": "derived",
+            "recommendation": "deploy a shorter-context variant or raise the batch size"
+          }
+        ],
+        "wasted_energy_wh_upper_bound": 107.07801089549255,
+        "note": "findings may overlap; do not sum them as independent savings"
+      },
+      "warnings": [
+        "SLO not met: p95 latency 36441 ms > 15000 ms"
+      ]
+    },
+    {
+      "strategy": "token_optimization",
+      "description": "Prefix cache, response cache and per-task output caps",
+      "summary": {
+        "provenance": "simulated",
+        "simulated": true,
+        "duration_s": 918.4499999997124,
+        "requests": 1792,
+        "successful_requests": 1774,
+        "error_rate": 0.010044642857142905,
+        "cache_hits": 133,
+        "total_tokens": 4420150,
+        "tokens_per_s": 4812.619086505943,
+        "output_tokens_per_s": 354.82824323599766,
+        "gpu_energy_wh": 334.94502832052825,
+        "it_energy_wh": 476.9986283204829,
+        "cooling_energy_wh": 115.68004717472073,
+        "facility_energy_wh": 670.2366754951778,
+        "pue": 1.4051123749665446,
+        "wh_per_1k_tokens": 0.07300341150536015,
+        "facility_wh_per_1k_tokens": 0.15163211101324114,
+        "wh_per_request": 0.1800703288869518,
+        "wh_per_successful_request": 0.18189742354307645,
+        "p50_latency_ms": 11169.205419450984,
+        "p95_latency_ms": 24567.748248639677,
+        "p99_latency_ms": 30347.034667232067,
+        "mean_batch_size": 2.0775669642857144,
+        "max_gpu_temp_c": 52.40762054012299,
+        "mean_clock_factor": 1.0,
+        "throttled_fraction": 0.0,
+        "exceeded_critical_temp": false,
+        "queue_wait_p50_ms": 2893.518906420496,
+        "queue_wait_p95_ms": 11447.789020448909,
+        "queue_wait_p99_ms": 15161.36316423289,
+        "service_p50_ms": 7401.71286793875,
+        "service_p95_ms": 16278.238080854755,
+        "mean_queue_wait_ms": 3942.2772505916096,
+        "mean_service_ms": 7375.288657136113,
+        "queue_share_of_latency": 0.348332608153825,
+        "mean_queue_depth": 7.6466521502449645,
+        "max_queue_depth": 22,
+        "device_utilization": 0.8995781164942842,
+        "throughput_requests_s": 1.9511132886935174
+      },
+      "slo": {
+        "slo": "benchmark-slo",
+        "p95_latency_ms": 24567.748248639677,
+        "availability": 0.9899553571428571,
+        "error_rate": 0.010044642857142905,
+        "wh_per_successful_request": 0.18189742354307645,
+        "latency_headroom_ms": -9567.748248639677,
+        "violations": [
+          "p95 latency 24568 ms > 15000 ms"
+        ],
+        "reliability_violations": [
+          "p95 latency 24568 ms > 15000 ms"
+        ],
+        "met": false,
+        "samples": 1792
+      },
+      "efficiency": {
+        "metrics": {
+          "requests": 1792,
+          "successful_tasks": 1774,
+          "total_tokens": 4420150,
+          "energy_wh": 322.6860293654176,
+          "tokens_per_request": 2466.6015625,
+          "tokens_per_successful_task": 2491.62908680947,
+          "wh_per_token": 7.300341150536013e-05,
+          "wh_per_successful_task": 0.18189742354307645,
+          "wh_per_useful_output_token": 0.0009984190118268968,
+          "wh_per_useful_task": 1.2604923022086625,
+          "wh_per_workload_window": 322.6860293654176,
+          "wh_per_hour": 1276.3497288533333,
+          "wh_per_1k_tokens": 0.07300341150536015,
+          "useful_tasks": 256,
+          "failed_requests": 18,
+          "useful_work_fraction": 0.9899553571428571,
+          "window_s": 910.1499999997195,
+          "provenance": "simulated"
+        },
+        "findings": [
+          {
+            "finding_id": "WF-c588cb16f1",
+            "type": "repeated_context",
+            "summary": "The same context prefix is re-processed across requests; prefix caching is not in use",
+            "affected_requests": 1096,
+            "wasted_tokens": 2003655,
+            "wasted_energy_wh": 53.471018081126786,
+            "evidence": [
+              "prefix 377e05289cfa37cd re-sent 686x",
+              "prefix 1ec0b9ba20cc9262 re-sent 410x",
+              "energy estimate assumes prefix caching removes prefill only, not decode"
+            ],
+            "confidence": 0.6,
+            "provenance": "derived",
+            "recommendation": "enable prefix/KV caching for the shared context"
+          },
+          {
+            "finding_id": "WF-b7adba5a9a",
+            "type": "duplicate_call",
+            "summary": "Identical prompts re-sent within the dedup window without a cache hit",
+            "affected_requests": 16,
+            "wasted_tokens": 39105,
+            "wasted_energy_wh": 3.1005592579160637,
+            "evidence": [
+              "prompt 1e1297cd852c1360 sent 2x to watts-sim-large for tenant tenant-a",
+              "prompt 9ca41c725e9a480b sent 2x to watts-sim-large for tenant tenant-a",
+              "prompt 08afd9b565832a7b sent 2x to watts-sim-large for tenant tenant-a",
+              "a response cache keyed on the prompt hash removes this work entirely"
+            ],
+            "confidence": 0.9,
+            "provenance": "derived",
+            "recommendation": "enable a per-tenant response cache keyed on the prompt hash"
+          },
+          {
+            "finding_id": "WF-b2a573adaf",
+            "type": "failed_work",
+            "summary": "Energy spent on requests that did not produce a usable result",
+            "affected_requests": 18,
+            "wasted_tokens": 42565,
+            "wasted_energy_wh": 2.673078745361784,
+            "evidence": [
+              "18 of 1792 requests failed",
+              "failure energy is pure waste: fix the error rate before tuning the batch size"
+            ],
+            "confidence": 0.95,
+            "provenance": "derived",
+            "recommendation": "fix the error rate before tuning anything else: failed work is pure waste"
+          },
+          {
+            "finding_id": "WF-dfacba83d0",
+            "type": "underused_context_window",
+            "summary": "Most requests use a fraction of the context window they were allocated",
+            "affected_requests": 1792,
+            "wasted_tokens": 0,
+            "wasted_energy_wh": 0.0,
+            "evidence": [
+              "1792 of 1792 requests below 10% window use",
+              "a smaller-window deployment of the same model frees KV cache memory and raises batch size"
+            ],
+            "confidence": 0.4,
+            "provenance": "derived",
+            "recommendation": "deploy a shorter-context variant or raise the batch size"
+          }
+        ],
+        "wasted_energy_wh_upper_bound": 59.24465608440463,
+        "note": "findings may overlap; do not sum them as independent savings"
+      },
+      "warnings": [
+        "SLO not met: p95 latency 24568 ms > 15000 ms"
+      ]
+    },
+    {
+      "strategy": "model_routing",
+      "description": "Route each task to the cheapest model meeting its quality tier",
+      "summary": {
+        "provenance": "simulated",
+        "simulated": true,
+        "duration_s": 904.7999999997248,
+        "requests": 1792,
+        "successful_requests": 1774,
+        "error_rate": 0.010044642857142905,
+        "cache_hits": 0,
+        "total_tokens": 4481908,
+        "tokens_per_s": 4953.479221929004,
+        "output_tokens_per_s": 428.4372236959747,
+        "gpu_energy_wh": 231.38738334934175,
+        "it_energy_wh": 371.3297833493001,
+        "cooling_energy_wh": 86.56402322277698,
+        "facility_energy_wh": 534.2991399053872,
+        "pue": 1.4388803803620194,
+        "wh_per_1k_tokens": 0.04041350896097976,
+        "facility_wh_per_1k_tokens": 0.1192124291496807,
+        "wh_per_request": 0.10107680196444581,
+        "wh_per_successful_request": 0.10210238394604673,
+        "p50_latency_ms": 2681.0317373760695,
+        "p95_latency_ms": 17976.54288669268,
+        "p99_latency_ms": 23975.67813112122,
+        "mean_batch_size": 1.8046875,
+        "max_gpu_temp_c": 47.297900240077716,
+        "mean_clock_factor": 1.0,
+        "throttled_fraction": 0.0,
+        "exceeded_critical_temp": false,
+        "queue_wait_p50_ms": 241.62587602587493,
+        "queue_wait_p95_ms": 10174.508252801956,
+        "queue_wait_p99_ms": 14124.816884663403,
+        "service_p50_ms": 507.9166666666667,
+        "service_p95_ms": 13571.188766040757,
+        "mean_queue_wait_ms": 2368.2011365685275,
+        "mean_service_ms": 3262.1646015683896,
+        "queue_share_of_latency": 0.42061230952150597,
+        "mean_queue_depth": 4.640769188263248,
+        "max_queue_depth": 19,
+        "device_utilization": 0.5386597226059567,
+        "throughput_requests_s": 1.9805481874453414
+      },
+      "slo": {
+        "slo": "benchmark-slo",
+        "p95_latency_ms": 17976.54288669268,
+        "availability": 0.9899553571428571,
+        "error_rate": 0.010044642857142905,
+        "wh_per_successful_request": 0.10210238394604673,
+        "latency_headroom_ms": -2976.5428866926813,
+        "violations": [
+          "p95 latency 17977 ms > 15000 ms"
+        ],
+        "reliability_violations": [
+          "p95 latency 17977 ms > 15000 ms"
+        ],
+        "met": false,
+        "samples": 1792
+      },
+      "efficiency": {
+        "metrics": {
+          "requests": 1792,
+          "successful_tasks": 1774,
+          "total_tokens": 4481908,
+          "energy_wh": 181.1296291202869,
+          "tokens_per_request": 2501.0647321428573,
+          "tokens_per_successful_task": 2526.4419391206316,
+          "wh_per_token": 4.041350896097977e-05,
+          "wh_per_successful_task": 0.10210238394604673,
+          "wh_per_useful_output_token": 0.0004716880574377984,
+          "wh_per_useful_task": 0.7075376137511207,
+          "wh_per_workload_window": 181.1296291202869,
+          "wh_per_hour": 721.4323890393661,
+          "wh_per_1k_tokens": 0.04041350896097976,
+          "useful_tasks": 256,
+          "failed_requests": 18,
+          "useful_work_fraction": 0.9899553571428571,
+          "window_s": 903.8499999997252,
+          "provenance": "simulated"
+        },
+        "findings": [
+          {
+            "finding_id": "WF-221a1ab998",
+            "type": "repeated_context",
+            "summary": "The same context prefix is re-processed across requests; prefix caching is not in use",
+            "affected_requests": 1180,
+            "wasted_tokens": 2159388,
+            "wasted_energy_wh": 5.066427429124111,
+            "evidence": [
+              "prefix 377e05289cfa37cd re-sent 741x",
+              "prefix 1ec0b9ba20cc9262 re-sent 439x",
+              "energy estimate assumes prefix caching removes prefill only, not decode"
+            ],
+            "confidence": 0.6,
+            "provenance": "derived",
+            "recommendation": "enable prefix/KV caching for the shared context"
+          },
+          {
+            "finding_id": "WF-dbdb2b467d",
+            "type": "failed_work",
+            "summary": "Energy spent on requests that did not produce a usable result",
+            "affected_requests": 18,
+            "wasted_tokens": 43517,
+            "wasted_energy_wh": 1.8032930028997995,
+            "evidence": [
+              "18 of 1792 requests failed",
+              "failure energy is pure waste: fix the error rate before tuning the batch size"
+            ],
+            "confidence": 0.95,
+            "provenance": "derived",
+            "recommendation": "fix the error rate before tuning anything else: failed work is pure waste"
+          },
+          {
+            "finding_id": "WF-c97511ee3d",
+            "type": "duplicate_call",
+            "summary": "Identical prompts re-sent within the dedup window without a cache hit",
+            "affected_requests": 57,
+            "wasted_tokens": 116833,
+            "wasted_energy_wh": 1.3019843390998038,
+            "evidence": [
+              "prompt 1e1297cd852c1360 sent 2x to watts-sim-small for tenant tenant-a",
+              "prompt b352b380fc28ae9e sent 2x to watts-sim-small for tenant tenant-a",
+              "prompt bb778cc72ef499cf sent 2x to watts-sim-small for tenant tenant-a",
+              "a response cache keyed on the prompt hash removes this work entirely"
+            ],
+            "confidence": 0.9,
+            "provenance": "derived",
+            "recommendation": "enable a per-tenant response cache keyed on the prompt hash"
+          },
+          {
+            "finding_id": "WF-3097e11376",
+            "type": "overlong_output",
+            "summary": "Outputs run well past the typical length for the task; decode dominates energy",
+            "affected_requests": 4,
+            "wasted_tokens": 3700,
+            "wasted_energy_wh": 0.9974788732441635,
+            "evidence": [
+              "task 'classification': median output 24, 1 requests above 48",
+              "task 'reasoning': median output 680, 2 requests above 1360",
+              "task 'summarization': median output 310, 1 requests above 620",
+              "set max_tokens per task class and measure the quality impact first"
+            ],
+            "confidence": 0.55,
+            "provenance": "derived",
+            "recommendation": "set a per-task output cap"
+          },
+          {
+            "finding_id": "WF-076e4fbab7",
+            "type": "underused_context_window",
+            "summary": "Most requests use a fraction of the context window they were allocated",
+            "affected_requests": 940,
+            "wasted_tokens": 0,
+            "wasted_energy_wh": 0.0,
+            "evidence": [
+              "940 of 1792 requests below 10% window use",
+              "a smaller-window deployment of the same model frees KV cache memory and raises batch size"
+            ],
+            "confidence": 0.4,
+            "provenance": "derived",
+            "recommendation": "deploy a shorter-context variant or raise the batch size"
+          }
+        ],
+        "wasted_energy_wh_upper_bound": 9.169183644367878,
+        "note": "findings may overlap; do not sum them as independent savings"
+      },
+      "warnings": [
+        "queue-bound: p95 is more than 4x p50, the run measures queueing as much as efficiency",
+        "SLO not met: p95 latency 17977 ms > 15000 ms"
+      ]
+    },
+    {
+      "strategy": "combined",
+      "description": "Routing, batching and token optimisation together",
+      "summary": {
+        "provenance": "simulated",
+        "simulated": true,
+        "duration_s": 906.0499999997237,
+        "requests": 1792,
+        "successful_requests": 1774,
+        "error_rate": 0.010044642857142905,
+        "cache_hits": 133,
+        "total_tokens": 4420150,
+        "tokens_per_s": 4878.483527400638,
+        "output_tokens_per_s": 359.6843441312283,
+        "gpu_energy_wh": 209.98810419587576,
+        "it_energy_wh": 350.1238375291659,
+        "cooling_energy_wh": 80.31204682471973,
+        "facility_energy_wh": 506.94677324275335,
+        "pue": 1.4479070514601105,
+        "wh_per_1k_tokens": 0.034188676893014684,
+        "facility_wh_per_1k_tokens": 0.11468994790736817,
+        "wh_per_request": 0.08432984384411767,
+        "wh_per_successful_request": 0.08518550178616621,
+        "p50_latency_ms": 1208.0361614092299,
+        "p95_latency_ms": 14793.738649050825,
+        "p99_latency_ms": 19942.13277693318,
+        "mean_batch_size": 1.37109375,
+        "max_gpu_temp_c": 47.16036276794823,
+        "mean_clock_factor": 1.0,
+        "throttled_fraction": 0.0,
+        "exceeded_critical_temp": false,
+        "queue_wait_p50_ms": 233.54927830104089,
+        "queue_wait_p95_ms": 8592.035086162923,
+        "queue_wait_p99_ms": 11112.653220094558,
+        "service_p50_ms": 290.01097493856264,
+        "service_p95_ms": 12429.416666666666,
+        "mean_queue_wait_ms": 1669.314080949355,
+        "mean_service_ms": 2448.7533379529823,
+        "queue_share_of_latency": 0.4053634657089483,
+        "mean_queue_depth": 3.2560423794283193,
+        "max_queue_depth": 13,
+        "device_utilization": 0.453930305705772,
+        "throughput_requests_s": 1.9778157938309657
+      },
+      "slo": {
+        "slo": "benchmark-slo",
+        "p95_latency_ms": 14793.738649050825,
+        "availability": 0.9899553571428571,
+        "error_rate": 0.010044642857142905,
+        "wh_per_successful_request": 0.08518550178616621,
+        "latency_headroom_ms": 206.2613509491748,
+        "violations": [],
+        "reliability_violations": [],
+        "met": true,
+        "samples": 1792
+      },
+      "efficiency": {
+        "metrics": {
+          "requests": 1792,
+          "successful_tasks": 1774,
+          "total_tokens": 4420150,
+          "energy_wh": 151.11908016865885,
+          "tokens_per_request": 2466.6015625,
+          "tokens_per_successful_task": 2491.62908680947,
+          "wh_per_token": 3.418867689301468e-05,
+          "wh_per_successful_task": 0.08518550178616621,
+          "wh_per_useful_output_token": 0.0004675757515343857,
+          "wh_per_useful_task": 0.5903089069088236,
+          "wh_per_workload_window": 151.11908016865885,
+          "wh_per_hour": 602.1680099699342,
+          "wh_per_1k_tokens": 0.034188676893014684,
+          "useful_tasks": 256,
+          "failed_requests": 18,
+          "useful_work_fraction": 0.9899553571428571,
+          "window_s": 903.4499999997256,
+          "provenance": "simulated"
+        },
+        "findings": [
+          {
+            "finding_id": "WF-c588cb16f1",
+            "type": "repeated_context",
+            "summary": "The same context prefix is re-processed across requests; prefix caching is not in use",
+            "affected_requests": 1096,
+            "wasted_tokens": 2003655,
+            "wasted_energy_wh": 3.184303958498961,
+            "evidence": [
+              "prefix 377e05289cfa37cd re-sent 686x",
+              "prefix 1ec0b9ba20cc9262 re-sent 410x",
+              "energy estimate assumes prefix caching removes prefill only, not decode"
+            ],
+            "confidence": 0.6,
+            "provenance": "derived",
+            "recommendation": "enable prefix/KV caching for the shared context"
+          },
+          {
+            "finding_id": "WF-02bdbc962d",
+            "type": "duplicate_call",
+            "summary": "Identical prompts re-sent within the dedup window without a cache hit",
+            "affected_requests": 2,
+            "wasted_tokens": 4705,
+            "wasted_energy_wh": 0.9040953496271573,
+            "evidence": [
+              "prompt 68ffa50adfda6f26 sent 2x to watts-sim-large for tenant tenant-a",
+              "prompt 175040e12d354459 sent 2x to watts-sim-large for tenant tenant-a",
+              "a response cache keyed on the prompt hash removes this work entirely"
+            ],
+            "confidence": 0.9,
+            "provenance": "derived",
+            "recommendation": "enable a per-tenant response cache keyed on the prompt hash"
+          },
+          {
+            "finding_id": "WF-b2a573adaf",
+            "type": "failed_work",
+            "summary": "Energy spent on requests that did not produce a usable result",
+            "affected_requests": 18,
+            "wasted_tokens": 42565,
+            "wasted_energy_wh": 0.808701905026974,
+            "evidence": [
+              "18 of 1792 requests failed",
+              "failure energy is pure waste: fix the error rate before tuning the batch size"
+            ],
+            "confidence": 0.95,
+            "provenance": "derived",
+            "recommendation": "fix the error rate before tuning anything else: failed work is pure waste"
+          },
+          {
+            "finding_id": "WF-23bca9f0c9",
+            "type": "underused_context_window",
+            "summary": "Most requests use a fraction of the context window they were allocated",
+            "affected_requests": 1007,
+            "wasted_tokens": 0,
+            "wasted_energy_wh": 0.0,
+            "evidence": [
+              "1007 of 1792 requests below 10% window use",
+              "a smaller-window deployment of the same model frees KV cache memory and raises batch size"
+            ],
+            "confidence": 0.4,
+            "provenance": "derived",
+            "recommendation": "deploy a shorter-context variant or raise the batch size"
+          }
+        ],
+        "wasted_energy_wh_upper_bound": 4.897101213153093,
+        "note": "findings may overlap; do not sum them as independent savings"
+      },
+      "warnings": [
+        "queue-bound: p95 is more than 4x p50, the run measures queueing as much as efficiency"
+      ]
+    }
+  ],
+  "quality_source": "declared by the operator for this run; WATTS does not measure task quality from telemetry"
+}

@@ -1,0 +1,23 @@
+[project]
+name = "watts"
+version = "0.2.0"
+description = "Energy intelligence and optimisation control plane for AI infrastructure"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+dependencies = []     # the reference implementation is dependency-free on purpose
+
+[project.optional-dependencies]
+gpu = ["nvidia-ml-py>=12.535"]         # real NVML telemetry
+dev = ["pytest>=8", "ruff>=0.5"]
+
+[project.scripts]
+watts = "watts:main"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "tests"]
