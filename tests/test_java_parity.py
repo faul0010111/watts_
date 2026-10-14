@@ -24,7 +24,7 @@ JAVA_TEST = ROOT / "apps" / "api" / "src" / "test" / "java" / "io" / "watts" / "
 class TestVectorFile(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.data = json.loads(VECTORS.read_text())
+        cls.data = json.loads(VECTORS.read_text(encoding="utf-8"))
         cls.tolerance = cls.data["tolerance"]
         cls.registry = load_default_profiles()
         cls.engine = PolicyEngine()
@@ -85,8 +85,8 @@ class TestVectorFile(unittest.TestCase):
 class TestJavaSideCoverage(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.data = json.loads(VECTORS.read_text())
-        cls.java = JAVA_TEST.read_text()
+        cls.data = json.loads(VECTORS.read_text(encoding="utf-8"))
+        cls.java = JAVA_TEST.read_text(encoding="utf-8")
 
     def test_java_test_exists_and_reads_the_same_file(self):
         self.assertIn("parity", self.java)

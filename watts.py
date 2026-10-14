@@ -63,8 +63,8 @@ def cmd_bench(args) -> None:
                            datacenter=DatacenterConfig(gpus=args.gpus), seeds=tuple(args.seeds))
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
-    (out / "benchmark.json").write_text(json.dumps(report, indent=2))
-    (out / "benchmark.md").write_text(to_markdown(report))
+    (out / "benchmark.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+    (out / "benchmark.md").write_text(to_markdown(report), encoding="utf-8")
     print(to_markdown(report))
 
 
@@ -98,8 +98,8 @@ def cmd_demo(args) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     md_path = out_dir / f"watts-report-{result.context.run_id}.md"
     json_path = out_dir / f"watts-report-{result.context.run_id}.json"
-    md_path.write_text(markdown)
-    json_path.write_text(json.dumps(data, indent=2, default=str))
+    md_path.write_text(markdown, encoding="utf-8")
+    json_path.write_text(json.dumps(data, indent=2, default=str), encoding="utf-8")
 
     # --- condensed view on stdout -----------------------------------------
     line = "-" * 74
@@ -142,7 +142,7 @@ def cmd_demo(args) -> None:
     print(f"reproduce: {result.context.reproduction_command}")
 
     if args.write_audit:
-        Path(args.write_audit).write_text(json.dumps(data["audit"], indent=2))
+        Path(args.write_audit).write_text(json.dumps(data["audit"], indent=2), encoding="utf-8")
         print(f"audit:   {args.write_audit}")
 
 
@@ -190,13 +190,23 @@ def cmd_calibrate(args) -> None:
     text = calibration_report(record)
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(text)
+    out_path.write_text(text, encoding="utf-8")
     print(text)
     print(f"\nwritten to {out_path}")
     print(f"registry status for {args.model}: {record.status}")
 
 
+def _force_utf8_output() -> None:
+    """The report uses arrows and other non-ASCII characters. Windows consoles default to
+    cp1252, which cannot encode them, so make stdout/stderr UTF-8 regardless of locale."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8", errors="replace")
+
+
 def main() -> None:
+    _force_utf8_output()
     parser = argparse.ArgumentParser(prog="watts", description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)

@@ -106,7 +106,7 @@ def _third_party_imports() -> list[str]:
     stdlib = set(sys.stdlib_module_names)
     offenders = []
     for path in (ROOT / "services").rglob("*.py"):
-        tree = ast.parse(path.read_text())
+        tree = ast.parse(path.read_text(encoding="utf-8"))
         guarded = set()
         for node in ast.walk(tree):
             if isinstance(node, ast.Try) and any(
@@ -147,13 +147,13 @@ def _docs_match() -> bool:
     referenced = set()
     for doc in docs:
         for match in re.findall(r"`(services/[\w/]+\.py|[\w/]+\.rego|experiments/\w+\.py)`",
-                                doc.read_text()):
+                                doc.read_text(encoding="utf-8")):
             referenced.add(match)
     missing = [r for r in referenced
                if not (ROOT / r).exists() and not (ROOT / "policies" / r).exists()]
     if missing:
         print("documented but missing:", missing, file=sys.stderr)
-    readme = (ROOT / "README.md").read_text()
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
     unlinked = [d.name for d in (ROOT / "docs").glob("*.md") if d.name not in readme]
     if unlinked:
         print("docs not linked from the README:", unlinked, file=sys.stderr)

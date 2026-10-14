@@ -77,6 +77,24 @@ jobs:
           print("manifests present")
           PY
 
+  windows:
+    # The demo and the report use non-ASCII characters; this job guards against
+    # encoding regressions on Windows consoles (cp1252).
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Tests
+        run: python -m unittest discover -s tests
+
+      - name: Demo runs end to end without PYTHONUTF8
+        run: python watts.py demo --duration 120 --rps 1.5 --seed 42
+
   policy:
     runs-on: ubuntu-latest
 

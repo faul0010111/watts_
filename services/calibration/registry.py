@@ -173,5 +173,5 @@ class CalibrationRegistry:
     def save(self, path: str | Path) -> Path:
         p = Path(path)
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(self.to_json())
+        p.write_text(self.to_json(), encoding="utf-8")
         return p

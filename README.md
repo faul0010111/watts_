@@ -27,7 +27,7 @@ centre and without a GPU.
 
 ## Run it
 
-Requires Python 3.10+. No dependencies, no services, no build step.
+Requires Python 3.10+. No dependencies, no services, no build step. Runs on Linux, macOS and Windows (CI covers Windows).
 
 ```bash
 git clone <this repo> && cd watts
@@ -36,7 +36,7 @@ python watts.py demo --seed 42  # the whole control plane, end to end, and a ful
 python watts.py bench           # strategy benchmark
 python watts.py calibrate       # the calibration loop (against the twin, and it says so)
 python watts.py dashboard       # build the Command Center as one HTML file
-make test                       # 300+ tests
+make test                       # 300+ tests (on Windows without make: python -m unittest discover -s tests)
 make experiments                # the nine reproducible experiments
 ```
 

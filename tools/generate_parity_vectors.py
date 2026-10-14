@@ -164,7 +164,7 @@ def main() -> None:
         "canonical_json": canonical_json_vectors(),
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(payload, indent=2, sort_keys=False) + "\n")
+    OUT.write_text(json.dumps(payload, indent=2, sort_keys=False) + "\n", encoding="utf-8")
     counts = {k: len(v) for k, v in payload.items() if isinstance(v, list)}
     print(f"wrote {OUT} ({counts})")
 

@@ -18,7 +18,7 @@ class TestPolicyParity(unittest.TestCase):
     def setUp(self):
         self.rego_ids = set()
         for path in POLICY_DIR.glob("*.rego"):
-            self.rego_ids |= set(RULE_ID.findall(path.read_text()))
+            self.rego_ids |= set(RULE_ID.findall(path.read_text(encoding="utf-8")))
         self.python_ids = {r.id for r in default_policy_set()}
 
     def test_every_python_rule_exists_in_rego(self):
@@ -34,7 +34,7 @@ class TestPolicyParity(unittest.TestCase):
         self.assertEqual(len(ids), len(set(ids)))
 
     def test_llm_guard_denies_execution_tools(self):
-        text = (POLICY_DIR / "watts_llm_guard.rego").read_text()
+        text = (POLICY_DIR / "watts_llm_guard.rego").read_text(encoding="utf-8")
         for tool in ("execute_change", "approve_optimization", "update_policy"):
             self.assertIn(tool, text)
 

@@ -27,10 +27,10 @@ def build(out: Path, rps: float = 2.0, duration: float = 600.0, gpus: int = 4,
     config = PipelineConfig(seed=seed, duration_s=duration, rps=rps, gpus=gpus)
     result = run_pipeline(config, command="python watts.py dashboard")
     data = result.as_dict()
-    html = TEMPLATE.read_text().replace(
+    html = TEMPLATE.read_text(encoding="utf-8").replace(
         "__WATTS_DATA__", json.dumps(data, separators=(",", ":"), default=str))
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(html)
+    out.write_text(html, encoding="utf-8")
     return out
 
 

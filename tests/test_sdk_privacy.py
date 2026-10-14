@@ -93,7 +93,7 @@ class TestWhatLeavesTheProcess(unittest.TestCase):
 
 class TestTypescriptMirror(unittest.TestCase):
     def test_typescript_sdk_declares_the_same_modes(self):
-        source = (ROOT / "sdk" / "ts" / "watts-telemetry.ts").read_text()
+        source = (ROOT / "sdk" / "ts" / "watts-telemetry.ts").read_text(encoding="utf-8")
         for mode in ("strict", "metadata", "no-hashes"):
             self.assertIn(f'"{mode}"', source)
         self.assertIn("privacyMode", source)

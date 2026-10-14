@@ -88,7 +88,7 @@ class ProfileRegistry:
 
     @classmethod
     def from_json(cls, path: str | Path) -> "ProfileRegistry":
-        data = json.loads(Path(path).read_text())
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
         return cls([ModelProfile(**p) for p in data["profiles"]])
 
 

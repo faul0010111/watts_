@@ -353,8 +353,8 @@ def main() -> None:  # pragma: no cover - CLI
     report["quality_source"] = ("declared by the operator for this run; WATTS does not "
                                 "measure task quality from telemetry")
     args.out.mkdir(parents=True, exist_ok=True)
-    (args.out / "benchmark.json").write_text(json.dumps(report, indent=2))
-    (args.out / "benchmark.md").write_text(to_markdown(report))
+    (args.out / "benchmark.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+    (args.out / "benchmark.md").write_text(to_markdown(report), encoding="utf-8")
     print(to_markdown(report))
     print(f"written to {args.out}/benchmark.json and {args.out}/benchmark.md")
 

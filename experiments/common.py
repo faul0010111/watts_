@@ -108,7 +108,7 @@ def write(name: str, title: str, question: str, rows: list[dict], columns: list[
         "findings": findings,
     }
     json_path = RESULTS / f"{name}.json"
-    json_path.write_text(json.dumps(payload, indent=2))
+    json_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     lines = [f"# {title}", "", f"**Research question.** {question}", "",
              f"*{payload['disclaimer']}*", "",
@@ -128,7 +128,7 @@ def write(name: str, title: str, question: str, rows: list[dict], columns: list[
               f"- method: {auto_manifest['method']}",
               f"- metrics: {', '.join(auto_manifest['metrics'])}"]
     lines += ["", "## Reproduce", "", "```bash", f"make experiment EXP={name}", "```", ""]
-    (RESULTS / f"{name}.md").write_text("\n".join(lines))
+    (RESULTS / f"{name}.md").write_text("\n".join(lines), encoding="utf-8")
     print("\n".join(lines))
     return json_path
 

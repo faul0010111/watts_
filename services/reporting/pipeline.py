@@ -524,7 +524,7 @@ def _read_benchmark(root: Path) -> dict:
         return {"status": "NOT RUN",
                 "note": "run `python watts.py bench` to produce benchmarks/results/benchmark.json"}
     import json
-    data = json.loads(path.read_text())
+    data = json.loads(path.read_text(encoding="utf-8"))
     return {
         "status": "available",
         "provenance": data.get("provenance"),
@@ -544,7 +544,7 @@ def _read_experiments(root: Path) -> dict:
     rows = []
     for path in sorted(directory.glob("*.json")):
         try:
-            data = json.loads(path.read_text())
+            data = json.loads(path.read_text(encoding="utf-8"))
         except ValueError:
             continue
         rows.append({
